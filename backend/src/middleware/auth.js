@@ -26,7 +26,9 @@ function demoUserFromToken(decoded) {
 export async function requireAuth(req, _res, next) {
   try {
     const header = req.headers.authorization || "";
-    const token = header.startsWith("Bearer ") ? header.slice(7) : req.cookies?.accessToken;
+    let token = header.startsWith("Bearer ") ? header.slice(7) : req.cookies?.accessToken;
+    if (!token && req.query?.token) token = req.query.token;
+    
     if (!token) throw new ApiError(401, "Authentication required");
 
     const decoded = verifyAccessToken(token);
