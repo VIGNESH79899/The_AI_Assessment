@@ -46,6 +46,11 @@ export function createApp() {
   app.use("/api", uploadRouter);
   app.use(notFound);
   app.use(errorHandler);
+  app.get("/", (req, res) => {
+  res.json({
+    status: "Backend running successfully 🚀"
+  });
+});
 
   return app;
 }
