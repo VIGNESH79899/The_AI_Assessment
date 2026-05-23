@@ -1,0 +1,15 @@
+{
+  "name": "assessment-maker-premium-platform",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "frontend:dev": "npm --prefix frontend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "frontend:preview": "npm --prefix frontend run preview",
+    "firebase:deploy": "npm --prefix frontend run build && firebase deploy --only hosting",
+    "firebase:serve": "npm --prefix frontend run build && firebase emulators:start --only hosting"
+  },
+  "devDependencies": {
+    "firebase-tools": "^14.2.1"
+  }
+}

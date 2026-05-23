@@ -1,0 +1,14 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: assessment-maker-ai-service
+spec:
+  template:
+    spec:
+      containers:
+        - image: gcr.io/PROJECT_ID/assessment-maker-ai-service
+          ports:
+            - containerPort: 8000
+          env:
+            - name: AI_SERVICE_TOKEN
+              value: replace_with_secret_manager_reference
