@@ -42,7 +42,7 @@ class GenerateRequest(BaseModel):
     template_path: str = ""
 
 
-@app.post("/api/generate")
+@app.post("/generate-assignment")
 async def generate(req: GenerateRequest, x_internal_service_token: str = Header(default="")):
     expected_token = os.getenv("AI_SERVICE_TOKEN")
     if expected_token and x_internal_service_token != expected_token:
@@ -191,6 +191,10 @@ async def download(filename: str):
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(path=str(file_path), filename=filename, media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
 
 if __name__ == "__main__":
     import uvicorn
