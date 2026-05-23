@@ -753,15 +753,25 @@ export default function App() {
                             </td>
                             <td className="px-6 py-4.5 text-right">
                               <div className="flex items-center justify-end gap-1.5">
-                                <a
-                                  href={doc.aiServiceUrl?.startsWith("http") ? doc.aiServiceUrl : `${API_URL}/api/generator/download/${doc._id}?token=${localStorage.getItem("accessToken")}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="p-1.5 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 rounded-lg text-zinc-650 dark:text-zinc-300 transition-all"
-                                  title="Download"
-                                >
-                                  <Download className="w-3.5 h-3.5" />
-                                </a>
+                                {doc.status === "failed" ? (
+                                  <span className="text-xs font-semibold text-rose-500 mr-2 flex items-center gap-1">
+                                    <AlertCircle className="w-3.5 h-3.5" /> Failed
+                                  </span>
+                                ) : doc.status === "processing" ? (
+                                  <span className="text-xs font-semibold text-amber-500 mr-2 flex items-center gap-1">
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing
+                                  </span>
+                                ) : (
+                                  <a
+                                    href={doc.aiServiceUrl?.startsWith("http") ? doc.aiServiceUrl : `${API_URL}/api/generator/download/${doc._id}?token=${localStorage.getItem("accessToken")}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="p-1.5 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 rounded-lg text-zinc-650 dark:text-zinc-300 transition-all"
+                                    title="Download"
+                                  >
+                                    <Download className="w-3.5 h-3.5" />
+                                  </a>
+                                )}
                                 <button
                                   onClick={() => handleRegenerate(doc)}
                                   className="p-1.5 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 rounded-lg text-zinc-650 dark:text-zinc-300 transition-all"
