@@ -55,6 +55,10 @@ export function requireRole(...roles) {
 }
 
 export function requireActiveMembership(req, _res, next) {
+  if (process.env.FREE_MODE === "true") {
+    return next();
+  }
+
   const user = req.user;
   const now = new Date();
   const active = user?.subscription?.status === "active" && user.subscription.currentPeriodEnd > now;
