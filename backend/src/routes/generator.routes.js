@@ -100,7 +100,10 @@ generatorRouter.get(
   asyncHandler(async (req, res) => {
     const doc = await GeneratedDocument.findOne({ _id: req.params.id, user: req.user._id });
     if (!doc || doc.status !== "ready") throw new ApiError(404, "Generated document not found");
-    res.redirect(doc.aiServiceUrl);
+    
+    // Normalize the URL before redirecting, in case it's a relative path to the AI service
+    const directUrl = normalizeAiDownloadUrl(doc.aiServiceUrl);
+    res.redirect(directUrl);
   })
 );
 
