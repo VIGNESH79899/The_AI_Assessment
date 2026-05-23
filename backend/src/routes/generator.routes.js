@@ -103,3 +103,30 @@ generatorRouter.get(
     res.redirect(doc.aiServiceUrl);
   })
 );
+
+generatorRouter.get(
+  "/generator/history",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    // If persistent connection is not ready, return empty history
+    if (mongoose.connection.readyState !== 1) {
+      return res.json({ history: [] });
+    }
+    const history = await GeneratedDocument.find({ user: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(100);
+    res.json({ history });
+  })
+);
+
+generatorRouter.delete(
+  "/generator/history/:id",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    if (mongoose.connection.readyState !== 1) {
+      return res.json({ success: true });
+    }
+    await GeneratedDocument.findOneAndDelete({ _id: req.params.id, user: req.user._id });
+    res.json({ success: true });
+  })
+);
