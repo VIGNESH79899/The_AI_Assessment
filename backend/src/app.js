@@ -23,12 +23,13 @@ export function createApp() {
   app.set("trust proxy", 1);
   app.use(helmet());
   app.use(compression());
-  app.use(
-    cors({
-      origin: env.clientUrl,
-      credentials: true
-    })
-  );
+  app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://the-ai-assessment-ics5y7jc1-vignesh79899s-projects.vercel.app"
+  ],
+  credentials: true
+}));
   app.use(morgan("dev"));
   app.use(cookieParser(env.cookieSecret));
 
