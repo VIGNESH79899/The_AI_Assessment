@@ -743,10 +743,12 @@ export default function App() {
                               </span>
                             </td>
                             <td className="px-6 py-4.5 text-xs text-zinc-400 dark:text-zinc-500">
-                              {new Date(doc.createdAt).toLocaleDateString(undefined, {
+                              {new Date(doc.createdAt).toLocaleString(undefined, {
                                 year: "numeric",
                                 month: "short",
-                                day: "numeric"
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit"
                               })}
                             </td>
                             <td className="px-6 py-4.5 text-right">
