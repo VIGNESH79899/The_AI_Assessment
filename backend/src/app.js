@@ -26,7 +26,7 @@ export function createApp() {
   app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://the-ai-assessment-ics5y7jc1-vignesh79899s-projects.vercel.app"
+    "https://assessmentmaker.vercel.app"
   ],
   credentials: true
 }));
