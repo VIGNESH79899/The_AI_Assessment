@@ -40,5 +40,5 @@ if (connection) {
 }
 
 server.listen(env.port, () => {
-  console.log(`[api] listening on http://localhost:${env.port}`);
+  console.log(`[api] server running on port ${env.port}`);
 });
