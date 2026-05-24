@@ -4,12 +4,16 @@ Single-call AI orchestration for reflective journal and free writing generation.
 
 import json
 import re
+import uuid
 from typing import Dict, Any, List
 
 from langchain_core.messages import HumanMessage
 
 from utils.llm import get_llm
 from utils.logger import get_logger
+from providers.fallback_provider import safe_json_log
+from providers.metrics import global_metrics
+from providers.cache import global_cache
 
 logger = get_logger("WorkflowEngine")
 
@@ -33,24 +37,92 @@ class BaseAssessmentWorkflow:
         self.academic_domain = academic_domain
         self.llm = get_llm()
 
-    def execute(self) -> Any:
+    def execute(self, request_id: str = None) -> Any:
         raise NotImplementedError("Subclasses must implement execute()")
 
 
 class ReflectiveJournalWorkflow(BaseAssessmentWorkflow):
-    def execute(self) -> Dict[str, str]:
-        logger.info(f"Generating Reflective Journal content for topic: {self.topic}")
-        raw_text = self.run_ai_pipeline()
-        parsed = self._parse_reflective_json(raw_text)
+    def execute(self, request_id: str = None) -> Dict[str, str]:
+        if not request_id:
+            request_id = str(uuid.uuid4())
+            
+        logger.info(f"[{request_id}] Generating Reflective Journal content for topic: {self.topic}")
+        
+        # 1. Try generating with primary LLM (which runs Groq first)
+        raw_text = self.run_ai_pipeline(request_id=request_id)
+        
+        from providers.fallback_provider import FallbackChatLLM, global_groq_breaker
+        provider = "groq"
+        model = "llama-3.3-70b-versatile"
+        if isinstance(self.llm, FallbackChatLLM) and global_groq_breaker.is_tripped():
+            provider = "gemini"
+            model = "gemini-2.0-flash"
+        
+        # 2. Run Validation
+        from providers.validator import validate_content
+        from providers.formatter import normalize_json_output
+        
+        is_valid, reason = validate_content(raw_text, "reflective")
+        
+        if not is_valid:
+            global_metrics.record_validation_failure(provider)
+            safe_json_log(
+                event_type="validation_failure",
+                request_id=request_id,
+                provider=provider,
+                model=model,
+                duration_ms=0,
+                fallback_used=True,
+                validation_passed=False,
+                message=f"Validation failed for {provider}: {reason}. Triggering Gemini fallback."
+            )
+            
+            if isinstance(self.llm, FallbackChatLLM):
+                logger.info(f"[{request_id}] Using Gemini provider fallback explicitly")
+                raw_text = self.run_ai_pipeline(llm=self.llm.gemini_llm, request_id=request_id)
+                provider = "gemini"
+                model = "gemini-2.0-flash"
+                
+                is_valid_gemini, reason_gemini = validate_content(raw_text, "reflective")
+                if not is_valid_gemini:
+                    global_metrics.record_validation_failure("gemini")
+                    safe_json_log(
+                        event_type="validation_failure",
+                        request_id=request_id,
+                        provider="gemini",
+                        model="gemini-2.0-flash",
+                        duration_ms=0,
+                        fallback_used=True,
+                        validation_passed=False,
+                        message=f"Gemini fallback validation failed: {reason_gemini}"
+                    )
+            else:
+                logger.critical(f"[{request_id}] FallbackChatLLM not found in self.llm. Fallback aborted.")
+        
+        # 3. Normalize JSON formatting
+        safe_json_log(
+            event_type="normalization_action",
+            request_id=request_id,
+            provider=provider,
+            model=model,
+            duration_ms=0,
+            fallback_used=(provider == "gemini"),
+            validation_passed=True,
+            message="Normalizing JSON layout and typography spacing"
+        )
+        normalized_text = normalize_json_output(raw_text, "reflective")
+        parsed = self._parse_reflective_json(normalized_text)
         
         if self._is_empty_payload(parsed):
-            logger.warning("AI payload empty or invalid; applying fallback content.")
+            logger.warning(f"[{request_id}] AI payload empty or invalid; applying fallback content.")
             return self._fallback_payload()
             
+        # Cache ONLY fully validated, formatter-cleaned, successful outputs
+        global_cache.set("reflective", self.get_prompt(), normalized_text)
         return parsed
 
-    def run_ai_pipeline(self) -> str:
-        prompt = f"""
+    def get_prompt(self) -> str:
+        return f"""
 Generate a HIGHLY DETAILED academic reflective journal.
 
 Topic: {self.topic}
@@ -111,7 +183,17 @@ FORMAT:
   "conclusion": "..."
 }}
 """
-        response = self.llm.invoke([HumanMessage(content=prompt)])
+
+    def run_ai_pipeline(self, llm=None, request_id: str = None) -> str:
+        if llm is None:
+            llm = self.llm
+        prompt = self.get_prompt()
+        content_type = "reflective"
+        response = llm.invoke(
+            [HumanMessage(content=prompt)],
+            request_id=request_id,
+            content_type=content_type
+        )
         return response.content if hasattr(response, "content") else str(response)
 
     def _parse_reflective_json(self, text: str) -> Dict[str, str]:
@@ -156,20 +238,88 @@ class DynamicAssignmentWorkflow(ReflectiveJournalWorkflow):
 
 
 class FreeWritingWorkflow(BaseAssessmentWorkflow):
-    def execute(self) -> dict:
-        logger.info(f"Generating Free Writing Assessment content for topic: {self.topic}, course: {self.course_name}, domain: {self.academic_domain}")
-        raw_text = self.run_ai_pipeline()
-        parsed = self._parse_free_writing_json(raw_text)
+    def execute(self, request_id: str = None) -> dict:
+        if not request_id:
+            request_id = str(uuid.uuid4())
+            
+        logger.info(f"[{request_id}] Generating Free Writing Assessment content for topic: {self.topic}, course: {self.course_name}, domain: {self.academic_domain}")
+        
+        # 1. Try generating with primary LLM (which runs Groq first)
+        raw_text = self.run_ai_pipeline(request_id=request_id)
+        
+        from providers.fallback_provider import FallbackChatLLM, global_groq_breaker
+        provider = "groq"
+        model = "llama-3.3-70b-versatile"
+        if isinstance(self.llm, FallbackChatLLM) and global_groq_breaker.is_tripped():
+            provider = "gemini"
+            model = "gemini-2.0-flash"
+            
+        # 2. Run Validation & Normalization
+        from providers.validator import validate_content
+        from providers.formatter import normalize_json_output
+        
+        is_valid, reason = validate_content(raw_text, "freewriting")
+        
+        if not is_valid:
+            global_metrics.record_validation_failure(provider)
+            safe_json_log(
+                event_type="validation_failure",
+                request_id=request_id,
+                provider=provider,
+                model=model,
+                duration_ms=0,
+                fallback_used=True,
+                validation_passed=False,
+                message=f"Validation failed for {provider}: {reason}. Triggering Gemini fallback."
+            )
+            
+            if isinstance(self.llm, FallbackChatLLM):
+                logger.info(f"[{request_id}] Using Gemini provider fallback explicitly")
+                raw_text = self.run_ai_pipeline(llm=self.llm.gemini_llm, request_id=request_id)
+                provider = "gemini"
+                model = "gemini-2.0-flash"
+                
+                is_valid_gemini, reason_gemini = validate_content(raw_text, "freewriting")
+                if not is_valid_gemini:
+                    global_metrics.record_validation_failure("gemini")
+                    safe_json_log(
+                        event_type="validation_failure",
+                        request_id=request_id,
+                        provider="gemini",
+                        model="gemini-2.0-flash",
+                        duration_ms=0,
+                        fallback_used=True,
+                        validation_passed=False,
+                        message=f"Gemini fallback validation failed: {reason_gemini}"
+                    )
+            else:
+                logger.critical(f"[{request_id}] FallbackChatLLM not found in self.llm. Fallback aborted.")
+                
+        # 3. Normalize JSON formatting
+        safe_json_log(
+            event_type="normalization_action",
+            request_id=request_id,
+            provider=provider,
+            model=model,
+            duration_ms=0,
+            fallback_used=(provider == "gemini"),
+            validation_passed=True,
+            message="Normalizing JSON layout and typography spacing"
+        )
+        normalized_text = normalize_json_output(raw_text, "freewriting")
+        parsed = self._parse_free_writing_json(normalized_text)
         
         if not parsed or not parsed.get("sections"):
-            logger.warning("AI payload empty or invalid for Free Writing; applying fallback content.")
+            logger.warning(f"[{request_id}] AI payload empty or invalid for Free Writing; applying fallback content.")
             return self._fallback_payload()
             
+        # Cache ONLY fully validated, formatter-cleaned, successful outputs
+        global_cache.set("freewriting", self.get_prompt(), normalized_text)
         return parsed
 
-    def run_ai_pipeline(self) -> str:
+    def get_prompt(self) -> str:
         domain_context = f"Academic Domain: {self.academic_domain}\n" if self.academic_domain else ""
-        prompt = f"""
+        return f"""
 You are generating a HIGHLY DETAILED, multi-page university-style academic free writing assessment.
 You are writing this from the perspective of an advanced university student in their final years.
 
@@ -208,7 +358,17 @@ The JSON must have the strictly following format:
   ]
 }}
 """
-        response = self.llm.invoke([HumanMessage(content=prompt)])
+
+    def run_ai_pipeline(self, llm=None, request_id: str = None) -> str:
+        if llm is None:
+            llm = self.llm
+        prompt = self.get_prompt()
+        content_type = "freewriting"
+        response = llm.invoke(
+            [HumanMessage(content=prompt)],
+            request_id=request_id,
+            content_type=content_type
+        )
         return response.content if hasattr(response, "content") else str(response)
 
     def _parse_free_writing_json(self, text: str) -> dict:

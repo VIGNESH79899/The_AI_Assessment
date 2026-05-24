@@ -1,17 +1,29 @@
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from the same directory as this file
+load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
+
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from pathlib import Path
 import uuid
-import os
+import time
 
 from agents.workflow import DynamicAssignmentWorkflow, FreeWritingWorkflow
 from utils.document_service import fill_reflective_journal, fill_free_writing
 from main import sanitize_filename, _resolve_template_path
+from utils.logger import get_logger
+
+logger = get_logger("ServerBoot")
 
 app = FastAPI(title="Assignment AI Backend")
+
+# Record startup timestamp
+startup_time = time.time()
 
 # Allow the Vite dev server origin
 app.add_middleware(
@@ -24,6 +36,7 @@ app.add_middleware(
 
 OUTPUT_DIR = Path(__file__).parent / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
+
 
 class GenerateRequest(BaseModel):
     student_name: str = ""
@@ -42,6 +55,59 @@ class GenerateRequest(BaseModel):
     template_path: str = ""
 
 
+@app.on_event("startup")
+async def startup_event():
+    # Verify environment variables
+    groq_key = os.getenv("GROQ_API_KEY")
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    
+    if not groq_key:
+        logger.critical("[STARTUP] FAIL-FAST: GROQ_API_KEY is not configured in the environment.")
+        raise RuntimeError("GROQ_API_KEY is missing from the environment.")
+        
+    if not gemini_key:
+        logger.critical("[STARTUP] FAIL-FAST: GEMINI_API_KEY is not configured in the environment.")
+        raise RuntimeError("GEMINI_API_KEY is missing from the environment.")
+
+    # Verify required directories exist
+    OUTPUT_DIR.mkdir(exist_ok=True)
+    templates_dir = Path(__file__).parent / "templates"
+    templates_dir.mkdir(exist_ok=True)
+    
+    logger.info("[STARTUP] Safe boot validation completed successfully.")
+
+
+@app.get("/health")
+async def health_check():
+    uptime = int(time.time() - startup_time)
+    return {
+        "status": "ok",
+        "uptime_seconds": uptime,
+        "version": "1.0.0"
+    }
+
+
+@app.get("/providers/health")
+async def providers_health():
+    from providers.fallback_provider import global_groq_breaker
+    is_groq_tripped = global_groq_breaker.is_tripped()
+    return {
+        "groq": {
+            "status": "degraded" if is_groq_tripped else "healthy",
+            "circuit_breaker_tripped": is_groq_tripped
+        },
+        "gemini": {
+            "status": "healthy" if os.getenv("GEMINI_API_KEY") else "unconfigured"
+        }
+    }
+
+
+@app.get("/providers/stats")
+async def providers_stats():
+    from providers.metrics import global_metrics
+    return global_metrics.get_stats()
+
+
 @app.post("/generate-assignment")
 async def generate(req: GenerateRequest, x_internal_service_token: str = Header(default="")):
     expected_token = os.getenv("AI_SERVICE_TOKEN")
@@ -50,6 +116,9 @@ async def generate(req: GenerateRequest, x_internal_service_token: str = Header(
 
     if not os.getenv("GROQ_API_KEY"):
         raise HTTPException(status_code=400, detail="GROQ_API_KEY not set on server")
+
+    request_id = str(uuid.uuid4())
+    logger.info(f"[{request_id}] Generation request received for topic: {req.topic}")
 
     # Determine filename
     raw_name = (req.document_name or "Journal_Document").strip()
@@ -68,8 +137,9 @@ async def generate(req: GenerateRequest, x_internal_service_token: str = Header(
     ai_topic = f"{req.topic}\n\n[Additional Instructions]:\n{req.additional_instructions}" if req.additional_instructions else req.topic
     workflow = DynamicAssignmentWorkflow(topic=ai_topic)
     try:
-        ai_output = workflow.execute()
+        ai_output = workflow.execute(request_id=request_id)
     except Exception as e:
+        logger.error(f"[{request_id}] AI generation failed: {e}")
         raise HTTPException(status_code=500, detail=f"AI generation failed: {e}")
 
     data = {
@@ -94,6 +164,7 @@ async def generate(req: GenerateRequest, x_internal_service_token: str = Header(
     try:
         final_path = fill_reflective_journal(str(template_path), output_path, data)
     except Exception as e:
+        logger.error(f"[{request_id}] DOCX generation failed: {e}")
         raise HTTPException(status_code=500, detail=f"DOCX generation failed: {e}")
 
     return {"url": f"/download/{Path(final_path).name}", "sections_count": 5}
@@ -126,6 +197,9 @@ async def generate_free_writing(req: GenerateFreeWritingRequest, x_internal_serv
     if not os.getenv("GROQ_API_KEY"):
         raise HTTPException(status_code=400, detail="GROQ_API_KEY not set on server")
 
+    request_id = str(uuid.uuid4())
+    logger.info(f"[{request_id}] Free writing generation request received for topic: {req.topic}")
+
     # Determine filename
     raw_name = (req.document_name or "FreeWriting_Document").strip()
     if not raw_name:
@@ -141,8 +215,9 @@ async def generate_free_writing(req: GenerateFreeWritingRequest, x_internal_serv
     ai_topic = f"{req.topic}\n\n[Additional Instructions]:\n{req.additional_instructions}" if req.additional_instructions else req.topic
     workflow = FreeWritingWorkflow(topic=ai_topic, course_name=req.course_name, academic_domain=req.academic_domain)
     try:
-        ai_output = workflow.execute()
+        ai_output = workflow.execute(request_id=request_id)
     except Exception as e:
+        logger.error(f"[{request_id}] AI generation failed: {e}")
         raise HTTPException(status_code=500, detail=f"AI generation failed: {e}")
 
     data = {
@@ -168,8 +243,7 @@ async def generate_free_writing(req: GenerateFreeWritingRequest, x_internal_serv
         t_path = str(template_path) if (req.template_path and template_path.exists()) else str(Path(__file__).parent / "templates" / "standard_assignment.docx")
         final_path = fill_free_writing(t_path, output_path, data)
     except Exception as e:
-        import traceback
-        traceback.print_exc()
+        logger.error(f"[{request_id}] DOCX generation failed: {e}")
         raise HTTPException(status_code=500, detail=f"DOCX generation failed: {e}")
 
     sections_count = 0
@@ -191,10 +265,6 @@ async def download(filename: str):
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(path=str(file_path), filename=filename, media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 
-
-@app.get("/health")
-async def health_check():
-    return {"status": "ok"}
 
 if __name__ == "__main__":
     import uvicorn

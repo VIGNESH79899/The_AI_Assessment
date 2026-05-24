@@ -1,6 +1,6 @@
 import unittest
 
-from main import extract_json as extract_json_main
+from agents.workflow import extract_json as extract_json_main
 from agents.workflow import extract_json as extract_json_workflow
 
 

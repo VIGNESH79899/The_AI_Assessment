@@ -8,12 +8,14 @@ import re
 from pathlib import Path
 
 from dotenv import load_dotenv
+from pathlib import Path
+
+# Load environment variables from the same directory as this file
+load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
 
 from agents.workflow import DynamicAssignmentWorkflow
 from utils.document_service import fill_reflective_journal
 from utils.logger import get_logger
-
-load_dotenv(override=True)
 logger = get_logger("SystemPipeline")
 
 
