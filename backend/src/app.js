@@ -37,7 +37,14 @@ export function createApp() {
   app.use(express.json({ limit: "2mb" }));
   app.use(express.urlencoded({ extended: true }));
   app.use(passport.initialize());
-  app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300 }));
+  app.use(rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    limit: 1000,              // raised from 300 → 1000 per window
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipSuccessfulRequests: true, // only count failed requests against limit
+    message: { message: "Too many requests. Please wait a moment and try again." }
+  }));
 
   app.get("/health", (_req, res) => res.json({ ok: true, service: "assessment-maker-premium-api" }));
   app.use("/api/auth", authRouter);
