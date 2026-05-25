@@ -487,167 +487,174 @@ export default function App() {
               className="space-y-24"
             >
               {/* Hero Section */}
-              <section className="text-center py-12 max-w-2xl mx-auto space-y-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-full text-xs font-medium text-zinc-600 dark:text-zinc-300">
+              <section className="text-center py-16 max-w-2xl mx-auto space-y-7">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-full text-xs font-semibold text-zinc-600 dark:text-zinc-300">
                   <Sparkle className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                  <span>Next-Generation Academic Writing</span>
+                  <span>AI-Powered Academic Document Studio</span>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-none bg-gradient-to-r from-zinc-900 via-zinc-700 to-zinc-500 dark:from-white dark:via-zinc-300 dark:to-zinc-500 bg-clip-text text-transparent">
-                  Academic DOCX journals, generated with precision.
+                <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight bg-gradient-to-br from-zinc-900 via-zinc-700 to-zinc-500 dark:from-white dark:via-zinc-200 dark:to-zinc-500 bg-clip-text text-transparent">
+                  Generate university-ready academic documents in minutes.
                 </h1>
-                <p className="text-lg text-zinc-500 dark:text-zinc-400 font-normal leading-relaxed">
-                  Fast, custom-tailored, and beautifully formatted reflective journals and summaries that match university requirements. Zero corporate fluff, pure speed.
+                <p className="text-base text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-xl mx-auto">
+                  Reflective journals, free writing assessments, and literature surveys — all AI-generated, perfectly formatted, and ready to submit. Built specifically for Aurora&apos;s PG College students.
                 </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                   <button
                     onClick={() => setActiveView(user ? "dashboard" : "login")}
-                    className="w-full sm:w-auto px-7 py-3 bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 font-medium rounded-xl shadow-md flex items-center justify-center gap-2 transition-all"
+                    className="w-full sm:w-auto px-8 py-3.5 bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 font-semibold rounded-xl shadow-md flex items-center justify-center gap-2 transition-all text-sm"
                   >
-                    <span>Get Started</span>
+                    <span>{user ? "Open Studio" : "Get Started — It's Free"}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                   {!user && (
                     <button
                       onClick={() => setActiveView("login")}
-                      className="w-full sm:w-auto px-7 py-3 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-150 dark:hover:bg-zinc-900/50 font-medium rounded-xl flex items-center justify-center gap-2 transition-all"
+                      className="w-full sm:w-auto px-7 py-3.5 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 font-medium rounded-xl flex items-center justify-center gap-2 transition-all text-sm text-zinc-700 dark:text-zinc-300"
                     >
-                      Sign In
+                      Sign In to your account
                     </button>
                   )}
                 </div>
+                <p className="text-xs text-zinc-400 dark:text-zinc-600 pt-1">
+                  No installation. No configuration. Just fill in your details and generate.
+                </p>
               </section>
 
-              {/* Product Preview */}
-              <section className="relative rounded-2xl border border-zinc-200 dark:border-zinc-800/50 p-2.5 bg-white/30 dark:bg-zinc-900/30 backdrop-blur-sm overflow-hidden shadow-2xl">
-                <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent"></div>
-                <div className="rounded-xl overflow-hidden border border-zinc-200/60 dark:border-zinc-800/80 bg-zinc-50 dark:bg-zinc-950 p-6 space-y-6">
-                  {/* Mock Navbar */}
-                  <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-900 pb-4">
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-zinc-250 dark:bg-zinc-800" />
-                      <span className="w-3 h-3 rounded-full bg-zinc-250 dark:bg-zinc-800" />
-                      <span className="w-3 h-3 rounded-full bg-zinc-250 dark:bg-zinc-800" />
-                    </div>
-                    <span className="text-xs text-zinc-400 dark:text-zinc-500 font-mono">premium_dashboard_preview.io</span>
-                    <span className="w-8 h-8 rounded-full bg-zinc-250 dark:bg-zinc-900" />
-                  </div>
-                  {/* Form Mockup */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="h-4.5 w-24 bg-zinc-200 dark:bg-zinc-900 rounded animate-pulse"></div>
-                        <div className="h-10 w-full bg-zinc-200/50 dark:bg-zinc-900/50 rounded-lg border border-zinc-205 dark:border-zinc-900 animate-pulse"></div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="h-4.5 w-32 bg-zinc-200 dark:bg-zinc-900 rounded animate-pulse"></div>
-                        <div className="h-10 w-full bg-zinc-200/50 dark:bg-zinc-900/50 rounded-lg border border-zinc-205 dark:border-zinc-900 animate-pulse"></div>
-                      </div>
-                      <div className="h-11 w-full bg-zinc-900 dark:bg-zinc-100 rounded-lg flex items-center justify-center text-white dark:text-black font-semibold text-xs gap-1.5 shadow-sm opacity-80 cursor-default">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>Generate DOCX</span>
-                      </div>
-                    </div>
-                    <div className="border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl p-5 flex flex-col justify-between min-h-[200px]">
-                      <div className="space-y-2.5">
-                        <div className="h-5 w-32 bg-zinc-200 dark:bg-zinc-900 rounded animate-pulse"></div>
-                        <div className="h-3.5 w-full bg-zinc-200/60 dark:bg-zinc-900/40 rounded animate-pulse"></div>
-                        <div className="h-3.5 w-4/5 bg-zinc-200/60 dark:bg-zinc-900/40 rounded animate-pulse"></div>
-                      </div>
-                      <div className="flex items-center justify-between border-t border-zinc-200 dark:border-zinc-900 pt-3 text-xs text-zinc-400 dark:text-zinc-500 font-medium">
-                        <span>Reflective_Journal_AI.docx</span>
-                        <span className="p-1 bg-zinc-100 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-800">
-                          <Download className="w-3.5 h-3.5" />
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+              {/* What Can You Generate — 3 Cards */}
+              <section className="space-y-8">
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl md:text-3xl font-bold tracking-tight">What can you generate?</h2>
+                  <p className="text-zinc-500 dark:text-zinc-400 text-sm">Three types of academic documents — all formatted, ready to submit.</p>
                 </div>
-              </section>
-
-              {/* Features Section */}
-              <section className="space-y-12">
-                <div className="text-center space-y-3">
-                  <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Real academic capabilities. Zero filler.</h2>
-                  <p className="text-zinc-500 dark:text-zinc-400">Everything you need to write and export scholarly reflective reports.</p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                   {[
                     {
-                      title: "Reflective Generation",
-                      description: "Creates rich reflective writings styled after academic standards.",
-                      icon: <BrainCircuit className="w-5 h-5 text-zinc-900 dark:text-white" />
+                      icon: <BookOpen className="w-6 h-6" />,
+                      iconBg: "bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400",
+                      title: "Reflective Journal",
+                      desc: "Write a structured academic reflection on any module or subject topic. Includes course details, student credentials, and a formatted DOCX ready for submission.",
+                      tag: "Most Used"
                     },
                     {
-                      title: "Standard DOCX Export",
-                      description: "Saves outputs directly as downloadable, fully styled DOCX files.",
-                      icon: <FileText className="w-5 h-5 text-zinc-900 dark:text-white" />
+                      icon: <Layers className="w-6 h-6" />,
+                      iconBg: "bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-400",
+                      title: "Free Writing Assessment",
+                      desc: "Generate an open-ended academic writing assessment on any domain topic. Powered by Groq AI and exported as a clean, printable Word document.",
+                      tag: "Creative"
                     },
                     {
-                      title: "Academic Formatting",
-                      description: "Pre-configures submission headers, dates, and course titles.",
-                      icon: <GraduationCap className="w-5 h-5 text-zinc-900 dark:text-white" />
-                    },
-                    {
-                      title: "Sub-Minute Speed",
-                      description: "Utilizes fast Groq Llama models to output drafts in under 30 seconds.",
-                      icon: <Sparkles className="w-5 h-5 text-zinc-900 dark:text-white" />
-                    },
-                    {
-                      title: "Saved History Logs",
-                      description: "Exposes past generated documents to download or regenerate instantly.",
-                      icon: <Layers className="w-5 h-5 text-zinc-900 dark:text-white" />
-                    },
-                    {
-                      title: "Tailored Instructions",
-                      description: "Refines the writing perspective using specific additional notes.",
-                      icon: <BookOpen className="w-5 h-5 text-zinc-900 dark:text-white" />
+                      icon: <GraduationCap className="w-6 h-6" />,
+                      iconBg: "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400",
+                      title: "Literature Survey",
+                      desc: "Search real papers from Semantic Scholar & arXiv, select relevant articles, and synthesize a complete literature survey DOCX in the exact university format.",
+                      tag: "Research"
                     }
-                  ].map((feat, i) => (
+                  ].map((card, i) => (
                     <div
                       key={i}
-                      className="p-6 rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900/30 flex flex-col justify-between space-y-4 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm"
+                      className="p-5 rounded-2xl border bg-white dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800 hover:shadow-md transition-all space-y-4 flex flex-col"
                     >
-                      <div className="p-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-lg w-fit">
-                        {feat.icon}
+                      <div className="flex items-center justify-between">
+                        <div className={`p-2.5 rounded-xl ${card.iconBg}`}>
+                          {card.icon}
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
+                          {card.tag}
+                        </span>
                       </div>
-                      <div className="space-y-1">
-                        <h3 className="text-sm font-semibold tracking-tight">{feat.title}</h3>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{feat.description}</p>
+                      <div className="space-y-1.5 flex-1">
+                        <h3 className="text-sm font-bold tracking-tight text-zinc-900 dark:text-white">{card.title}</h3>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{card.desc}</p>
                       </div>
+                      <button
+                        onClick={() => setActiveView(user ? "dashboard" : "login")}
+                        className="w-full text-xs font-semibold py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 transition-all flex items-center justify-center gap-1.5"
+                      >
+                        Try this <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   ))}
                 </div>
               </section>
 
               {/* How It Works */}
-              <section className="space-y-12 py-6">
-                <div className="text-center space-y-3">
+              <section className="space-y-10 py-4">
+                <div className="text-center space-y-2">
                   <h2 className="text-2xl md:text-3xl font-bold tracking-tight">How it works</h2>
-                  <p className="text-zinc-500 dark:text-zinc-400">Generate your university reflective reports in three simple steps.</p>
+                  <p className="text-zinc-500 dark:text-zinc-400 text-sm">From details to download in under a minute.</p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   {[
-                    { step: "01", title: "Fill Details", desc: "Input student metadata, subject name, academic year, and the main assignment topic." },
-                    { step: "02", title: "Configure & Run", desc: "Write additional prompt instructions to guide the reflection tone, then generate." },
-                    { step: "03", title: "Export DOCX", desc: "View the instant log results, review, and download your fully formatted MS Word doc." }
+                    { step: "1", icon: <User className="w-5 h-5" />, title: "Enter your details", desc: "Add your name, roll number, academic year, course, and guide information." },
+                    { step: "2", icon: <BookOpen className="w-5 h-5" />, title: "Choose your topic", desc: "Search scholarly papers (for surveys) or type in your assignment topic directly." },
+                    { step: "3", icon: <Sparkles className="w-5 h-5" />, title: "Generate with AI", desc: "Our AI pipeline writes the full document — structured, formatted, and academic." },
+                    { step: "4", icon: <Download className="w-5 h-5" />, title: "Download the DOCX", desc: "Instantly download a university-ready Word document. No editing needed." }
                   ].map((item, idx) => (
-                    <div key={idx} className="relative group space-y-3">
-                      <span className="font-mono text-3xl font-bold text-zinc-300 dark:text-zinc-800 group-hover:text-zinc-900 dark:group-hover:text-zinc-200 transition-colors">
-                        {item.step}
-                      </span>
-                      <h3 className="text-base font-semibold tracking-tight">{item.title}</h3>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{item.desc}</p>
+                    <div key={idx} className="relative space-y-4 text-center">
+                      <div className="mx-auto w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-800 dark:text-zinc-100">
+                        {item.icon}
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Step {item.step}</p>
+                        <h3 className="text-sm font-bold tracking-tight text-zinc-900 dark:text-white">{item.title}</h3>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{item.desc}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
               </section>
 
-              {/* Final CTA / Footer */}
-              <footer className="pt-16 pb-8 border-t border-zinc-200 dark:border-zinc-900 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-400 dark:text-zinc-650 gap-4">
-                <span>&copy; {new Date().getFullYear()} Assessment Maker Premium. All rights reserved.</span>
+              {/* Feature Highlights */}
+              <section className="space-y-8">
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Built for students, not enterprises</h2>
+                  <p className="text-zinc-500 dark:text-zinc-400 text-sm">Everything you need to submit quality academic work — nothing you don&apos;t.</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                  {[
+                    { icon: <GraduationCap className="w-5 h-5" />, title: "University Format", desc: "Outputs match your college's cover page, heading style, font, and spacing requirements exactly." },
+                    { icon: <FileText className="w-5 h-5" />, title: "Instant DOCX Export", desc: "Every document is saved as an MS Word file — open it, print it, or email it right away." },
+                    { icon: <BookOpen className="w-5 h-5" />, title: "Real Research Papers", desc: "Literature surveys pull live articles from Semantic Scholar and arXiv — no fake citations." },
+                    { icon: <Sparkles className="w-5 h-5" />, title: "AI-Powered Writing", desc: "Groq Llama AI generates your content in under 30 seconds — structured and coherent." },
+                    { icon: <Layers className="w-5 h-5" />, title: "Document History", desc: "All your past documents are saved. Revisit, re-download, or regenerate any time." },
+                    { icon: <Calendar className="w-5 h-5" />, title: "Always Accurate Metadata", desc: "Student name, roll number, guide details, and year — pre-filled and embedded automatically." }
+                  ].map((feat, i) => (
+                    <div key={i} className="p-5 rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900/30 flex gap-4 items-start hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm">
+                      <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-700 dark:text-zinc-300 flex-shrink-0">
+                        {feat.icon}
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-white">{feat.title}</h3>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{feat.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* Final CTA Banner */}
+              <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 p-10 text-center space-y-5">
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                  Ready to generate your document?
+                </h2>
+                <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-md mx-auto leading-relaxed">
+                  Sign in with your account and start generating academic documents in under a minute.
+                </p>
+                <button
+                  onClick={() => setActiveView(user ? "dashboard" : "login")}
+                  className="inline-flex items-center gap-2 px-8 py-3 bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 font-semibold rounded-xl shadow-md transition-all text-sm"
+                >
+                  <span>{user ? "Go to Studio" : "Get Started — It's Free"}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </section>
+
+              {/* Footer */}
+              <footer className="pt-8 pb-8 border-t border-zinc-200 dark:border-zinc-900 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-400 dark:text-zinc-650 gap-4">
+                <span>&copy; {new Date().getFullYear()} Assessment Maker — Aurora&apos;s PG College. All rights reserved.</span>
                 <div className="flex items-center gap-4">
                   <a
-                    href="https://github.com"
+                    href="https://github.com/VIGNESH79899/The_AI_Assessment"
                     target="_blank"
                     rel="noreferrer"
                     className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
