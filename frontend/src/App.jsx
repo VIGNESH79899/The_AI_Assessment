@@ -694,7 +694,9 @@ export default function App() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              className="max-w-2xl mx-auto space-y-8"
+              className={`mx-auto space-y-8 transition-all duration-500 ease-out px-4 ${
+                assessmentType === "literature_survey" ? "max-w-6xl" : "max-w-2xl"
+              }`}
             >
               {/* Sleek Vercel-style Tab Switcher */}
               <AssessmentSwitcher
