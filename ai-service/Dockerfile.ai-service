@@ -5,6 +5,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY agents ./agents
 COPY utils ./utils
 COPY templates ./templates
+COPY services ./services
+COPY providers ./providers
 COPY main.py server.py ./
 RUN mkdir -p output uploads
 EXPOSE 8000

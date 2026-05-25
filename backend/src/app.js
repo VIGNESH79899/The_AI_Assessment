@@ -24,12 +24,13 @@ export function createApp() {
   app.use(helmet());
   app.use(compression());
   app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://assessmentmaker.vercel.app"
-  ],
-  credentials: true
-}));
+    origin: [
+      "http://localhost:5173",
+      "https://assessmentmaker.vercel.app",
+      /\.vercel\.app$/
+    ],
+    credentials: true
+  }));
   app.use(morgan("dev"));
   app.use(cookieParser(env.cookieSecret));
 
@@ -47,6 +48,7 @@ export function createApp() {
   }));
 
   app.get("/health", (_req, res) => res.json({ ok: true, service: "assessment-maker-premium-api" }));
+  app.get("/", (_req, res) => res.json({ status: "Backend running successfully 🚀" }));
   app.use("/api/auth", authRouter);
   app.use("/api", subscriptionRouter);
   app.use("/api", generatorRouter);
@@ -54,11 +56,6 @@ export function createApp() {
   app.use("/api", uploadRouter);
   app.use(notFound);
   app.use(errorHandler);
-  app.get("/", (req, res) => {
-  res.json({
-    status: "Backend running successfully 🚀"
-  });
-});
 
   return app;
 }
