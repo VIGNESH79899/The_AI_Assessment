@@ -3,6 +3,7 @@ from docx.shared import Pt, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -648,7 +649,17 @@ def fill_literature_survey(template_path: str, output_path: str, data: dict) -> 
 
     # 3. RENDER OBJECTIVES
     add_section_heading("Objectives of the Project")
-    add_body_paragraphs(generated_data.get("objectives", ""))
+    obj_content = generated_data.get("objectives", "")
+    obj_lines = [line.strip() for line in re.split(r'\r?\n', obj_content) if line.strip()]
+    for line in obj_lines:
+        p = doc.add_paragraph()
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after = Pt(6)
+        p.paragraph_format.line_spacing = 1.5
+        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        p.paragraph_format.left_indent = Inches(0.25)
+        run = p.add_run(line)
+        add_run_style_local(run, font_size=14, bold=False)
 
     # 4. RENDER LITERATURE REVIEW
     add_section_heading("Review of Articles")

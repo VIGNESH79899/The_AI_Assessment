@@ -273,7 +273,7 @@ Your output must be a valid, flat JSON object containing exactly the following 3
    - Establish the research topic, context, significance, and mapping to the literature.
 
 2. "objectives": 
-   - 1-2 detailed paragraphs outlining what this literature survey and overall project aims to establish, analyze, and achieve.
+   - Exactly 5 to 6 numbered points, each on a new line (using \n for line breaks, e.g., "1. To study...\n2. To analyze..."). Each point MUST be a single, concise, one-line sentence (maximum 15-20 words). Do NOT write paragraphs.
 
 3. "conclusion": 
    - A project-level final conclusion (2-3 detailed paragraphs).
