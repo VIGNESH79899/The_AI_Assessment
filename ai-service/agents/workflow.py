@@ -24,7 +24,7 @@ def extract_json(text: str) -> dict:
         match = re.search(r"\{.*\}", text, re.DOTALL)
         if match:
             json_str = match.group()
-            return json.loads(json_str)
+            return json.loads(json_str, strict=False)
     except Exception as e:
         logger.warning(f"JSON extraction failed: {e}")
     return {}
@@ -206,7 +206,7 @@ FORMAT:
             cleaned = re.sub(r"```json\s*", "", cleaned)
             cleaned = re.sub(r"```\s*", "", cleaned)
             
-            parsed = json.loads(cleaned)
+            parsed = json.loads(cleaned, strict=False)
             if isinstance(parsed, dict):
                 return {k: str(parsed.get(k, "")).strip() for k in required}
         except:
@@ -379,7 +379,7 @@ The JSON must have the strictly following format:
             cleaned = re.sub(r"```json\s*", "", cleaned)
             cleaned = re.sub(r"```\s*", "", cleaned)
             
-            parsed = json.loads(cleaned)
+            parsed = json.loads(cleaned, strict=False)
             if isinstance(parsed, dict) and "sections" in parsed:
                 return {
                     "title": str(parsed.get("title", self.topic)).strip(),
@@ -399,7 +399,7 @@ The JSON must have the strictly following format:
         try:
             match = re.search(r"\{.*\}", text, re.DOTALL)
             if match:
-                parsed = json.loads(match.group())
+                parsed = json.loads(match.group(), strict=False)
                 if isinstance(parsed, dict) and "sections" in parsed:
                     return {
                         "title": str(parsed.get("title", self.topic)).strip(),

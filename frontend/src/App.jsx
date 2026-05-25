@@ -29,6 +29,7 @@ import { useTheme } from "./hooks/useTheme.js";
 import { AssessmentSwitcher } from "./components/assessments/AssessmentSwitcher.jsx";
 import { ReflectiveJournalForm } from "./components/assessments/ReflectiveJournalForm.jsx";
 import { FreeWritingForm } from "./components/assessments/FreeWritingForm.jsx";
+import { LiteratureSurveyForm } from "./components/assessments/LiteratureSurveyForm.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
@@ -75,6 +76,7 @@ export default function App() {
   const [assessmentType, setAssessmentType] = useState("reflective_journal");
   const [generating, setGenerating] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  const [selectedPapers, setSelectedPapers] = useState([]);
   
   const [formData, setFormData] = useState({
     student_name: "",
@@ -89,7 +91,14 @@ export default function App() {
     academic_domain: "Computer Science & IT",
     topic: "",
     additional_instructions: "",
-    date: new Date().toISOString().slice(0, 10)
+    date: new Date().toISOString().slice(0, 10),
+    students: [{ name: "", roll: "" }],
+    university_name: "Aurora's PG College",
+    department_name: "Department of Computer Science & Engineering",
+    university_location: "Hyderabad, Telangana",
+    guide_name: "",
+    guide_designation: "Assistant Professor",
+    guide_department: "Computer Science & Engineering"
   });
 
   const showToast = (message, type = "success") => {
@@ -174,31 +183,62 @@ export default function App() {
       }
 
       // Construct doc name prefix based on type
-      const prefix = assessmentType === "free_writing" ? "FreeWriting" : "Journal";
+      const prefix = 
+        assessmentType === "free_writing" 
+          ? "FreeWriting" 
+          : assessmentType === "literature_survey"
+          ? "LiteratureSurvey"
+          : "Journal";
       const userDocName = formData.document_name?.trim();
       const cleanDocName = userDocName 
         ? userDocName.replace(/[^a-zA-Z0-9_-]/g, "_")
         : (formData.topic.substring(0, 20).replace(/[^a-zA-Z0-9]/g, "_") || prefix) + "_Document";
 
+      let studentNames = formData.student_name;
+      let studentRolls = formData.registration_number;
+      let classSectionCombined = formData.class_section || "A";
+      
+      if (assessmentType === "literature_survey") {
+        if (formData.students && formData.students.length > 0) {
+          studentNames = formData.students.map(s => s.name?.trim() || "Unknown").join(", ");
+          studentRolls = formData.students.map(s => s.roll?.trim() || "N/A").join(", ");
+        }
+        
+        const guideDesignation = formData.guide_designation || "";
+        const guideDept = formData.guide_department || "";
+        classSectionCombined = [guideDesignation, guideDept].filter(Boolean).join(", ");
+      }
+
       const payload = {
-        student_name: formData.student_name,
-        registration_number: formData.registration_number,
+        student_name: assessmentType === "literature_survey" ? studentNames : formData.student_name,
+        registration_number: assessmentType === "literature_survey" ? studentRolls : formData.registration_number,
         academic_year: formData.academic_year,
-        year_term: formData.year_term,
-        course_name: formData.course_name, // Maps to subject
+        year_term: assessmentType === "literature_survey" ? (formData.university_name || "") : formData.year_term,
+        course_name: assessmentType === "literature_survey" ? (formData.department_name || "") : formData.course_name, 
         topic: formData.topic,
         additional_instructions: formData.additional_instructions,
         document_name: cleanDocName,
-        study_level: formData.study_level || "UG",
-        class_section: formData.class_section || "A",
-        instructor: formData.instructor || "AI Assistant",
-        assessment: assessmentType === "free_writing" ? "Free Writing Assessment" : "Reflective Journal",
+        study_level: assessmentType === "literature_survey" ? (formData.university_location || "") : (formData.study_level || "UG"),
+        class_section: assessmentType === "literature_survey" ? classSectionCombined : (formData.class_section || "A"),
+        instructor: assessmentType === "literature_survey" ? (formData.guide_name || "") : (formData.instructor || "AI Assistant"),
+        assessment: 
+          assessmentType === "free_writing" 
+            ? "Free Writing Assessment" 
+            : assessmentType === "literature_survey"
+            ? "Literature Survey Assessment"
+            : "Reflective Journal",
         date: formData.date || new Date().toISOString().slice(0, 10),
-        ...(assessmentType === "free_writing" ? { academic_domain: formData.academic_domain } : {})
+        ...(assessmentType === "free_writing" ? { academic_domain: formData.academic_domain } : {}),
+        ...(assessmentType === "literature_survey" ? { selected_papers: selectedPapers } : {})
       };
 
       let result;
-      const targetEndpoint = assessmentType === "free_writing" ? "/api/generator/free-writing" : "/api/generator/assignments";
+      const targetEndpoint = 
+        assessmentType === "free_writing" 
+          ? "/api/generator/free-writing" 
+          : assessmentType === "literature_survey"
+          ? "/api/generator/literature-survey"
+          : "/api/generator/assignments";
       try {
         result = await apiRequest(targetEndpoint, {
           method: "POST",
@@ -226,6 +266,8 @@ export default function App() {
       showToast(
         assessmentType === "free_writing"
           ? "Free Writing Assessment generated successfully!"
+          : assessmentType === "literature_survey"
+          ? "Literature Survey Assessment generated successfully!"
           : "Reflective journal generated successfully!",
         "success"
       );
@@ -262,22 +304,57 @@ export default function App() {
       instructions = item.topic.substring(splitIndex + 30);
     }
 
-    setAssessmentType(item.assessmentType === "free_writing" ? "free_writing" : "reflective_journal");
+    setAssessmentType(
+      item.assessmentType === "free_writing" 
+        ? "free_writing" 
+        : item.assessmentType === "literature_survey"
+        ? "literature_survey"
+        : "reflective_journal"
+    );
+
+    const isLit = item.assessmentType === "literature_survey";
+    
+    // De-serialize multiple students if available
+    let initialStudents = [{ name: user?.name || "", roll: "" }];
+    if (isLit && item.student_name) {
+      const names = item.student_name.split(", ");
+      const rolls = (item.registration_number || "").split(", ");
+      initialStudents = names.map((name, idx) => ({
+        name,
+        roll: rolls[idx] || ""
+      }));
+    }
+
+    // Guide Designation & Dept separation
+    let guideDesig = "Assistant Professor";
+    let guideD = "Computer Science & Engineering";
+    if (isLit && item.class_section) {
+      const parts = item.class_section.split(", ");
+      if (parts.length > 0) guideDesig = parts[0];
+      if (parts.length > 1) guideD = parts[1];
+    }
 
     setFormData({
-      student_name: user?.name || "",
-      registration_number: "",
-      academic_year: new Date().getFullYear() + " - " + (new Date().getFullYear() + 1),
-      year_term: "",
-      study_level: "",
-      class_section: "",
-      instructor: "",
-      document_name: "",
-      course_name: item.assessmentMetadata?.subject || "",
-      academic_domain: item.assessmentMetadata?.academicDomain || "Computer Science & IT",
+      student_name: item.student_name || user?.name || "",
+      registration_number: item.registration_number || "",
+      academic_year: item.academic_year || (new Date().getFullYear() + " - " + (new Date().getFullYear() + 1)),
+      year_term: item.year_term || "",
+      study_level: item.study_level || "",
+      class_section: item.class_section || "",
+      instructor: item.instructor || "",
+      document_name: item.documentName || "",
+      course_name: item.course_name || "",
+      academic_domain: item.academic_domain || "Computer Science & IT",
       topic: cleanTopic,
       additional_instructions: instructions,
-      date: new Date().toISOString().slice(0, 10)
+      date: new Date().toISOString().slice(0, 10),
+      students: initialStudents,
+      university_name: isLit ? (item.year_term || "Aurora's PG College") : "Aurora's PG College",
+      department_name: isLit ? (item.course_name || "Department of Computer Science & Engineering") : "Department of Computer Science & Engineering",
+      university_location: isLit ? (item.study_level || "Hyderabad, Telangana") : "Hyderabad, Telangana",
+      guide_name: isLit ? (item.instructor || "") : "",
+      guide_designation: guideDesig,
+      guide_department: guideD
     });
 
     setActiveView("dashboard");
@@ -627,11 +704,17 @@ export default function App() {
 
               <div className="space-y-2">
                 <h1 className="text-2xl font-extrabold tracking-tight">
-                  {assessmentType === "free_writing" ? "Free Writing Assessment Studio" : "AI Reflective Journal Studio"}
+                  {assessmentType === "free_writing" 
+                    ? "Free Writing Assessment Studio" 
+                    : assessmentType === "literature_survey"
+                    ? "AI Literature Survey Studio"
+                    : "AI Reflective Journal Studio"}
                 </h1>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                <p className="text-sm text-zinc-555 dark:text-zinc-400 leading-relaxed">
                   {assessmentType === "free_writing"
                     ? "Enter student credentials and academic domain details. Our pipeline will build a comprehensive, dynamically structured academic assessment."
+                    : assessmentType === "literature_survey"
+                    ? "Search real research papers from Semantic Scholar and arXiv, select the most relevant, and synthesize a structured scholarly literature survey."
                     : "Enter student credentials and subject details. Our pipeline will build a comprehensive, formatted reflective journal document."}
                 </p>
               </div>
@@ -642,6 +725,15 @@ export default function App() {
                   setFormData={setFormData}
                   onSubmit={handleGenerate}
                   generating={generating}
+                />
+              ) : assessmentType === "literature_survey" ? (
+                <LiteratureSurveyForm
+                  formData={formData}
+                  setFormData={setFormData}
+                  onSubmit={handleGenerate}
+                  generating={generating}
+                  selectedPapers={selectedPapers}
+                  setSelectedPapers={setSelectedPapers}
                 />
               ) : (
                 <ReflectiveJournalForm
@@ -732,9 +824,11 @@ export default function App() {
                               <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${
                                 doc.assessmentType === "free_writing"
                                   ? "bg-zinc-100 text-zinc-800 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
+                                  : doc.assessmentType === "literature_survey"
+                                  ? "bg-indigo-50 text-indigo-800 border-indigo-200 dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-900/50"
                                   : "bg-zinc-50 text-zinc-600 border-zinc-200/60 dark:bg-zinc-900/60 dark:text-zinc-400 dark:border-zinc-800"
                               }`}>
-                                {doc.assessmentType === "free_writing" ? "Free Writing" : "Reflective Journal"}
+                                {doc.assessmentType === "free_writing" ? "Free Writing" : doc.assessmentType === "literature_survey" ? "Literature Survey" : "Reflective Journal"}
                               </span>
                             </td>
                             <td className="px-6 py-4.5 max-w-[240px] truncate text-zinc-500 dark:text-zinc-400">

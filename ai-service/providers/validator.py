@@ -69,7 +69,7 @@ def validate_content(text: str, content_type: str = "reflective") -> Tuple[bool,
     json_str = cleaned[first_brace:last_brace + 1]
     
     try:
-        data = json.loads(json_str)
+        data = json.loads(json_str, strict=False)
     except json.JSONDecodeError as e:
         return False, f"JSON parse error: {e}"
 
@@ -104,6 +104,14 @@ def validate_content(text: str, content_type: str = "reflective") -> Tuple[bool,
                 return False, f"Free writing section at index {idx} is missing content"
             if not isinstance(heading, str) or not isinstance(content, str):
                 return False, f"Free writing section at index {idx} fields are not strings"
+    elif content_type == "literature_survey":
+        required = ["introduction", "objectives", "conclusion"]
+        for key in required:
+            val = data.get(key)
+            if not val or not str(val).strip():
+                return False, f"Missing or empty required field for literature survey: '{key}'"
+            if not isinstance(val, str):
+                return False, f"Required field '{key}' must be a string"
     else:
         return False, f"Unknown content type: {content_type}"
 

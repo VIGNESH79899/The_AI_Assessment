@@ -12,9 +12,11 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import uuid
 import time
-
+from typing import List, Dict, Any
 from agents.workflow import DynamicAssignmentWorkflow, FreeWritingWorkflow
-from utils.document_service import fill_reflective_journal, fill_free_writing
+from agents.literature_survey_workflow import LiteratureSurveyWorkflow
+from utils.document_service import fill_reflective_journal, fill_free_writing, fill_literature_survey
+from services.literature.search_manager import global_search_manager
 from main import sanitize_filename, _resolve_template_path
 from utils.logger import get_logger
 
@@ -253,6 +255,105 @@ async def generate_free_writing(req: GenerateFreeWritingRequest, x_internal_serv
         sections_count = len(ai_output)
 
     return {"url": f"/download/{Path(final_path).name}", "sections_count": sections_count}
+
+
+class GenerateLiteratureSurveyRequest(BaseModel):
+    student_name: str = ""
+    academic_year: str = ""
+    registration_number: str = ""
+    year_term: str = ""
+    study_level: str = ""
+    class_section: str = ""
+    course_name: str = ""
+    instructor: str = ""
+    assessment: str = ""
+    date: str = ""
+    topic: str = "Literature Survey Topic"
+    additional_instructions: str = ""
+    document_name: str = ""
+    template_path: str = ""
+    selected_papers: List[Dict[str, Any]] = []
+
+
+@app.get("/api/literature/search")
+async def search_literature(q: str):
+    if not q or len(q.strip()) < 3:
+        raise HTTPException(status_code=400, detail="Query search term must be at least 3 characters.")
+    try:
+        results = global_search_manager.search(q.strip())
+        return {"results": [p.dict() for p in results]}
+    except Exception as e:
+        logger.error(f"Error during literature search: {e}")
+        return {"results": [], "error": str(e)}
+
+
+@app.post("/api/literature/generate-survey")
+async def generate_literature_survey(req: GenerateLiteratureSurveyRequest, x_internal_service_token: str = Header(default="")):
+    expected_token = os.getenv("AI_SERVICE_TOKEN")
+    if expected_token and x_internal_service_token != expected_token:
+        raise HTTPException(status_code=403, detail="Invalid internal service token")
+
+    if not os.getenv("GROQ_API_KEY"):
+        raise HTTPException(status_code=400, detail="GROQ_API_KEY not set on server")
+
+    if not req.selected_papers:
+        raise HTTPException(status_code=400, detail="At least one selected paper must be provided.")
+
+    request_id = str(uuid.uuid4())
+    logger.info(f"[{request_id}] Literature survey generation request received for topic: {req.topic}")
+
+    # Determine filename
+    raw_name = (req.document_name or "LiteratureSurvey_Document").strip()
+    if not raw_name:
+        raw_name = "LiteratureSurvey_Document"
+    filename = sanitize_filename(raw_name)
+    if not filename.lower().endswith(".docx"):
+        filename += ".docx"
+
+    # Resolve template
+    template_path = _resolve_template_path(req.template_path or "")
+
+    # Generate content via workflow
+    ai_topic = f"{req.topic}\n\n[Additional Instructions]:\n{req.additional_instructions}" if req.additional_instructions else req.topic
+    workflow = LiteratureSurveyWorkflow(
+        topic=ai_topic,
+        course_name=req.course_name,
+        selected_papers=req.selected_papers,
+        academic_domain=""
+    )
+    try:
+        ai_output = workflow.execute(request_id=request_id)
+    except Exception as e:
+        logger.error(f"[{request_id}] AI survey generation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"AI survey generation failed: {e}")
+
+    data = {
+        "document_name": filename,
+        "topic": req.topic,
+        "date": req.date,
+        "student_details": {
+            "student_name": req.student_name,
+            "academic_year": req.academic_year,
+            "registration_number": req.registration_number,
+            "year_term": req.year_term,
+            "study_level": req.study_level,
+            "class_section": req.class_section,
+            "course_name": req.course_name,
+            "instructor": req.instructor,
+            "assessment": req.assessment or "Literature Survey Assessment",
+        },
+        "generated_content": ai_output,
+    }
+
+    output_path = str(OUTPUT_DIR / filename)
+    try:
+        t_path = str(template_path) if (req.template_path and template_path.exists()) else str(Path(__file__).parent / "templates" / "standard_literature.docx")
+        final_path = fill_literature_survey(t_path, output_path, data)
+    except Exception as e:
+        logger.error(f"[{request_id}] DOCX generation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"DOCX generation failed: {e}")
+
+    return {"url": f"/download/{Path(final_path).name}", "sections_count": 6}
 
 
 # Serve generated files

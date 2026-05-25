@@ -43,7 +43,7 @@ def normalize_json_output(text: str, content_type: str = "reflective") -> str:
     """
     sanitized = sanitize_json_string(text)
     try:
-        data = json.loads(sanitized)
+        data = json.loads(sanitized, strict=False)
         if content_type == "reflective":
             required = ["experience", "feelings", "learning", "application", "conclusion"]
             for key in required:
@@ -59,6 +59,11 @@ def normalize_json_output(text: str, content_type: str = "reflective") -> str:
                             sec["heading"] = normalize_spacing_and_typography(sec["heading"])
                         if "content" in sec and isinstance(sec["content"], str):
                             sec["content"] = normalize_spacing_and_typography(sec["content"])
+        elif content_type == "literature_survey":
+            required = ["introduction", "objectives", "conclusion"]
+            for key in required:
+                if key in data and isinstance(data[key], str):
+                    data[key] = normalize_spacing_and_typography(data[key])
         
         return json.dumps(data, indent=2, ensure_ascii=False)
     except Exception:

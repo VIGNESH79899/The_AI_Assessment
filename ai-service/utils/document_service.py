@@ -1,5 +1,5 @@
 from docx import Document
-from docx.shared import Pt, Inches
+from docx.shared import Pt, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 import logging
@@ -467,6 +467,233 @@ def fill_free_writing(template_path: str, output_path: str, data: dict) -> str:
             
             p_run = p.add_run(p_text)
             apply_run_style(p_run, font_size=12, bold=False)
+
+    doc.save(output_path)
+    return output_path
+
+
+def fill_literature_survey(template_path: str, output_path: str, data: dict) -> str:
+    # Load standard template directly
+    doc = Document(template_path)
+
+    # Standardize Margins slightly tighter to ensure single page cover safety
+    for section in doc.sections:
+        section.top_margin = Inches(0.8)
+        section.bottom_margin = Inches(0.8)
+        section.left_margin = Inches(1)
+        section.right_margin = Inches(1)
+
+    student_details = data.get("student_details", {})
+    topic = data.get("topic", "")
+    generated_data = data.get("generated_content", {})
+
+    # Delete all tables in the document (since cover page and sections are fresh paragraphs)
+    for table in list(doc.tables):
+        parent = table._element.getparent()
+        if parent is not None:
+            parent.remove(table._element)
+
+    # Clear Placeholder Body Paragraphs
+    for p in list(doc.paragraphs):
+        parent = p._element.getparent()
+        if parent is not None:
+            parent.remove(p._element)
+
+    # Helpers
+    def add_run_style_local(run, font_size=14, bold=False, color=None):
+        run.font.name = 'Times New Roman'
+        run.font.size = Pt(font_size)
+        run.bold = bold
+        if color:
+            run.font.color.rgb = color
+        r = run._element.get_or_add_rPr()
+        rFonts = r.get_or_add_rFonts()
+        for attr in ['w:ascii', 'w:hAnsi', 'w:eastAsia', 'w:cs']:
+            rFonts.set(qn(attr), 'Times New Roman')
+
+    def add_centered_paragraph(text, font_size=14, bold=False, italic=False, color=None, space_before=0, space_after=0):
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.line_spacing = 1.15
+        p.paragraph_format.space_before = Pt(space_before)
+        p.paragraph_format.space_after = Pt(space_after)
+        run = p.add_run(text)
+        add_run_style_local(run, font_size=font_size, bold=bold, color=color)
+        run.font.italic = italic
+        return p
+
+    def add_section_heading(text):
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.line_spacing = 1.5
+        p.paragraph_format.space_before = Pt(24)
+        p.paragraph_format.space_after = Pt(8)
+        run = p.add_run(text)
+        add_run_style_local(run, font_size=14, bold=True)
+        return p
+
+    def add_article_heading(idx, title):
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.line_spacing = 1.5
+        p.paragraph_format.space_before = Pt(18)
+        p.paragraph_format.space_after = Pt(6)
+        run = p.add_run(f"{idx}. {title}")
+        add_run_style_local(run, font_size=14, bold=True)
+        return p
+
+    def add_labeled_paragraph(label, value):
+        p = doc.add_paragraph()
+        p.paragraph_format.line_spacing = 1.5
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after = Pt(6)
+        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        
+        l_run = p.add_run(f"{label} ")
+        add_run_style_local(l_run, font_size=14, bold=True)
+        
+        v_run = p.add_run(str(value))
+        add_run_style_local(v_run, font_size=14, bold=False)
+        return p
+
+    def add_body_paragraphs(content):
+        if not content:
+            return
+        paragraphs = content.split("\n\n")
+        for p_text in paragraphs:
+            p_text = p_text.strip()
+            if not p_text:
+                continue
+            p = doc.add_paragraph()
+            p.paragraph_format.space_before = Pt(0)
+            p.paragraph_format.space_after = Pt(6)
+            p.paragraph_format.line_spacing = 1.5
+            p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            run = p.add_run(p_text)
+            add_run_style_local(run, font_size=14, bold=False)
+
+    # 1. RENDER COVER PAGE
+    add_centered_paragraph("Literature Survey", font_size=16, space_before=6, space_after=3)
+    add_centered_paragraph("on", font_size=16, space_after=6)
+    
+    # Project Title (Bold, Red, 14pt)
+    add_centered_paragraph(topic, font_size=14, bold=True, color=RGBColor(255, 0, 0), space_after=12)
+    
+    add_centered_paragraph("Submitted in partial fulfilment of the award of the", font_size=16, space_before=6, space_after=3)
+    add_centered_paragraph("Bachelor of Technology", font_size=16, bold=True, space_after=3)
+    add_centered_paragraph("in", font_size=16, space_after=3)
+    
+    dept_name = student_details.get("course_name", "[DEPARTMENT NAME]")
+    if not dept_name.lower().startswith("department"):
+        dept_name = f"Department of {dept_name}"
+    add_centered_paragraph(dept_name, font_size=16, bold=True, space_after=12)
+    
+    add_centered_paragraph("By", font_size=16, space_after=6)
+    
+    student_names_str = student_details.get("student_name", "")
+    student_rolls_str = student_details.get("registration_number", "")
+    
+    names = [n.strip() for n in student_names_str.split(",") if n.strip()]
+    rolls = [r.strip() for r in student_rolls_str.split(",") if r.strip()]
+    
+    for idx in range(max(len(names), 1)):
+        name = names[idx] if idx < len(names) else f"Student {idx+1}"
+        roll = f"({rolls[idx]})" if idx < len(rolls) else ""
+        add_centered_paragraph(f"{name} {roll}".strip(), font_size=16, space_after=2)
+        
+    add_centered_paragraph("Under the esteemed guidance of", font_size=16, space_before=12, space_after=6)
+    
+    guide_name = student_details.get("instructor", "[GUIDE NAME]")
+    add_centered_paragraph(guide_name, font_size=16, bold=True, space_after=2)
+    
+    guide_class_sec = student_details.get("class_section", "")
+    if "," in guide_class_sec:
+        guide_designation, guide_department = [p.strip() for p in guide_class_sec.split(",", 1)]
+    else:
+        guide_designation = guide_class_sec
+        guide_department = ""
+        
+    add_centered_paragraph(guide_designation, font_size=14, bold=True, space_after=2)
+    if guide_department:
+        add_centered_paragraph(guide_department, font_size=16, space_after=8)
+    
+    # Insert Extracted Aurora Logo
+    import os
+    logo_path = os.path.join(os.path.dirname(__file__), "..", "templates", "aurora_logo.jpeg")
+    if os.path.exists(logo_path):
+        logo_p = doc.add_paragraph()
+        logo_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        logo_p.paragraph_format.space_before = Pt(6)
+        logo_p.paragraph_format.space_after = Pt(6)
+        logo_p.paragraph_format.line_spacing = 1.15
+        run = logo_p.add_run()
+        run.add_picture(logo_path, width=Inches(1.2))
+        
+    univ_name = student_details.get("year_term", "[UNIVERSITY / COLLEGE NAME]")
+    univ_loc = student_details.get("study_level", "[UNIVERSITY LOCATION]")
+    
+    add_centered_paragraph(univ_name.upper(), font_size=12, bold=True, space_after=2)
+    add_centered_paragraph("(Deemed to be University)", font_size=12, bold=True, space_after=2)
+    add_centered_paragraph(univ_loc, font_size=14, space_after=2)
+    
+    acad_year = student_details.get("academic_year", "[YEAR]")
+    add_centered_paragraph(f"({acad_year})", font_size=14, space_before=3)
+    
+    # Page Break after Cover Page
+    doc.add_page_break()
+
+    # 2. RENDER INTRODUCTION
+    add_section_heading("Introduction")
+    add_body_paragraphs(generated_data.get("introduction", ""))
+
+    # 3. RENDER OBJECTIVES
+    add_section_heading("Objectives of the Project")
+    add_body_paragraphs(generated_data.get("objectives", ""))
+
+    # 4. RENDER LITERATURE REVIEW
+    add_section_heading("Review of Articles")
+    
+    # Loop and render each article
+    articles = generated_data.get("papers", [])
+    for idx, art in enumerate(articles, 1):
+        add_article_heading(idx, art.get("title", ""))
+        add_labeled_paragraph("Title:", art.get("title", ""))
+        add_labeled_paragraph("Authors:", art.get("authors", ""))
+        add_labeled_paragraph("Year:", art.get("year", ""))
+        add_labeled_paragraph("Abstract Summary:", art.get("abstract_summary", art.get("summary", "")))
+        add_labeled_paragraph("Methodology:", art.get("methodology", ""))
+        add_labeled_paragraph("Advantages:", art.get("advantages", ""))
+        add_labeled_paragraph("Limitations:", art.get("limitations", ""))
+
+    # 5. RENDER FINAL CONCLUSION
+    add_section_heading("Conclusion")
+    add_body_paragraphs(generated_data.get("conclusion", ""))
+
+    # 6. RENDER REFERENCES
+    if articles:
+        add_section_heading("References")
+        for idx, art in enumerate(articles, 1):
+            ref_p = doc.add_paragraph()
+            ref_p.paragraph_format.left_indent = Inches(0.5)
+            ref_p.paragraph_format.first_line_indent = Inches(-0.5)
+            ref_p.paragraph_format.space_after = Pt(6)
+            ref_p.paragraph_format.line_spacing = 1.5
+            ref_p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+
+            authors = art.get("authors", "")
+            year = art.get("year", "")
+            title = art.get("title", "")
+            source = art.get("source", "")
+            url = art.get("url", "")
+            
+            ref_text = f"[{idx}] {authors} ({year}). {title}."
+            if source:
+                ref_text += f" Retrieved via {source}."
+            if url:
+                ref_text += f" URL: {url}"
+                
+            run = ref_p.add_run(ref_text)
+            add_run_style_local(run, font_size=12, bold=False)
 
     doc.save(output_path)
     return output_path

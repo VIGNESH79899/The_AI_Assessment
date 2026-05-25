@@ -8,7 +8,9 @@ const generatedDocumentSchema = new mongoose.Schema(
     aiServiceUrl: String,
     downloadToken: String,
     status: { type: String, enum: ["processing", "ready", "failed"], default: "processing" },
-    error: String
+    error: String,
+    assessmentType: { type: String, default: "reflective_journal" },
+    assessmentMetadata: { type: mongoose.Schema.Types.Mixed, default: {} }
   },
   { timestamps: true }
 );
