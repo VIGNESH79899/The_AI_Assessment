@@ -403,9 +403,7 @@ export default function App() {
           onClick={() => setActiveView("home")}
           className="flex items-center gap-2.5 font-semibold text-lg text-zinc-900 dark:text-white"
         >
-          <span className="p-1.5 bg-zinc-900 dark:bg-zinc-100 rounded-lg text-white dark:text-black">
-            <BrainCircuit className="w-5 h-5" />
-          </span>
+          <img src="/favicon-256.png" alt="AI Assessment Maker" className="w-8 h-8 rounded-lg object-contain" />
           <span className="tracking-tight">Assessment Maker</span>
         </button>
 
