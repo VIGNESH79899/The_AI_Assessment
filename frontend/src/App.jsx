@@ -77,6 +77,8 @@ export default function App() {
   const [generating, setGenerating] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const [selectedPapers, setSelectedPapers] = useState([]);
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null, name: "" });
+  const [deleting, setDeleting] = useState(false);
   
   const [formData, setFormData] = useState({
     student_name: "",
@@ -263,6 +265,15 @@ export default function App() {
         }
       }
 
+      // Trigger automatic DOCX download
+      const downloadUrl = result.url || result.downloadUrl;
+      if (downloadUrl) {
+        console.log("[DOWNLOAD] Opening DOCX:", downloadUrl);
+        window.open(downloadUrl, "_blank");
+      } else {
+        console.warn("[DOWNLOAD] No download URL in response:", result);
+      }
+
       showToast(
         assessmentType === "free_writing"
           ? "Free Writing Assessment generated successfully!"
@@ -282,14 +293,22 @@ export default function App() {
   };
 
   // Delete document from history
-  const handleDeleteHistory = async (id) => {
-    if (!confirm("Are you sure you want to delete this document from history?")) return;
+  const handleDeleteHistory = (id, name) => {
+    setDeleteConfirm({ show: true, id, name: name || "this document" });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return;
+    setDeleting(true);
     try {
-      await apiRequest(`/api/generator/history/${id}`, { method: "DELETE" });
+      await apiRequest(`/api/generator/history/${deleteConfirm.id}`, { method: "DELETE" });
       showToast("Document deleted successfully", "success");
       fetchHistory();
     } catch (err) {
       showToast(err.message || "Failed to delete document.", "error");
+    } finally {
+      setDeleting(false);
+      setDeleteConfirm({ show: false, id: null, name: "" });
     }
   };
 
@@ -881,7 +900,7 @@ export default function App() {
                                   <RefreshCw className="w-3.5 h-3.5" />
                                 </button>
                                 <button
-                                  onClick={() => handleDeleteHistory(doc._id)}
+                                  onClick={() => handleDeleteHistory(doc._id, doc.documentName)}
                                   className="p-1.5 border border-zinc-200 dark:border-zinc-800 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/50 dark:hover:text-rose-400 rounded-lg text-zinc-500 dark:text-zinc-500 transition-all"
                                   title="Delete"
                                 >
@@ -904,6 +923,90 @@ export default function App() {
 
       {/* Subtle spacer */}
       <div className="h-16"></div>
+
+      {/* ====================================================
+          DELETE CONFIRMATION MODAL
+          ==================================================== */}
+      <AnimatePresence>
+        {deleteConfirm.show && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            onClick={() => !deleting && setDeleteConfirm({ show: false, id: null, name: "" })}
+            onKeyDown={(e) => {
+              if (e.key === "Escape" && !deleting) setDeleteConfirm({ show: false, id: null, name: "" });
+            }}
+          >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm" />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 5 }}
+              transition={{ type: "spring", stiffness: 400, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl dark:shadow-black/40 overflow-hidden"
+            >
+              {/* Top accent bar */}
+              <div className="h-1 w-full bg-gradient-to-r from-rose-400 via-rose-500 to-pink-500" />
+
+              <div className="p-6 space-y-5">
+                {/* Icon + Title */}
+                <div className="flex flex-col items-center text-center space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200/50 dark:border-rose-900/40 flex items-center justify-center">
+                    <Trash2 className="w-5 h-5 text-rose-500 dark:text-rose-400" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <h3 className="text-base font-bold tracking-tight text-zinc-900 dark:text-white">
+                      Delete Document
+                    </h3>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                      Are you sure you want to delete{" "}
+                      <span className="font-semibold text-zinc-700 dark:text-zinc-200">
+                        {deleteConfirm.name}
+                      </span>
+                      ? This action cannot be undone.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setDeleteConfirm({ show: false, id: null, name: "" })}
+                    disabled={deleting}
+                    className="flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-all disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDelete}
+                    disabled={deleting}
+                    className="flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl bg-rose-500 hover:bg-rose-600 dark:bg-rose-600 dark:hover:bg-rose-500 text-white shadow-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                  >
+                    {deleting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Deleting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-4 h-4" />
+                        <span>Delete</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
     </div>
   );

@@ -80,9 +80,13 @@ generatorRouter.post(
         throw new ApiError(502, "AI service returned an invalid download URL");
       }
 
+      console.log(`[GENERATOR] Assignment ready. Download URL: ${directUrl}`);
       res.status(201).json({
+        success: true,
         document: doc,
-        downloadUrl: persistenceEnabled ? `/api/generator/download/${doc._id}` : directUrl
+        url: directUrl,
+        downloadUrl: directUrl,
+        sectionsCount: result.sections_count || 0
       });
     } catch (error) {
       doc.status = "failed";
@@ -169,9 +173,13 @@ generatorRouter.post(
         throw new ApiError(502, "AI service returned an invalid download URL");
       }
 
+      console.log(`[GENERATOR] Free writing ready. Download URL: ${directUrl}`);
       res.status(201).json({
+        success: true,
         document: doc,
-        downloadUrl: persistenceEnabled ? `/api/generator/download/${doc._id}` : directUrl
+        url: directUrl,
+        downloadUrl: directUrl,
+        sectionsCount: result.sections_count || 0
       });
     } catch (error) {
       doc.status = "failed";
@@ -257,9 +265,13 @@ generatorRouter.post(
         throw new ApiError(502, "AI service returned an invalid download URL");
       }
 
+      console.log(`[GENERATOR] Literature survey ready. Download URL: ${directUrl}`);
       res.status(201).json({
+        success: true,
         document: doc,
-        downloadUrl: persistenceEnabled ? `/api/generator/download/${doc._id}` : directUrl
+        url: directUrl,
+        downloadUrl: directUrl,
+        sectionsCount: result.sections_count || 0
       });
     } catch (error) {
       doc.status = "failed";
