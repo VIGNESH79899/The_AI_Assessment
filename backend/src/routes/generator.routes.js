@@ -1,5 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
+import axios from "axios";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { requireActiveMembership, requireAuth } from "../middleware/auth.js";
@@ -22,6 +23,52 @@ function normalizeAiDownloadUrl(url) {
   }
 
   return `${env.aiServiceUrl}${url.startsWith("/") ? url : `/${url}`}`;
+}
+
+async function triggerZapierDocumentEmail(req, result, documentType, downloadUrl) {
+  const body = req.validated?.body || req.body || {};
+
+  // Zapier is called only after the document has been generated, saved as ready,
+  // and a frontend-safe download URL is available. The webhook starts the
+  // existing Zapier automation: Catch Hook -> Filter -> Gmail Send Email.
+  const payload = {
+    userId: req.user?.id || req.user?._id?.toString?.() || null,
+    userName: req.user?.name || "User",
+    userEmail: req.user?.email || null,
+    documentTitle: body.document_name || body.topic || "Generated Document",
+    documentType,
+    downloadUrl: result?.downloadUrl || result?.fileUrl || result?.docxUrl || downloadUrl || null,
+    generatedAt: new Date().toISOString()
+  };
+
+  // The payload gives Zapier the user identity, document label/type, final
+  // download URL, and generation timestamp needed to compose the Gmail message.
+  // Missing email or URL means the email automation cannot safely run, so the
+  // webhook is skipped without changing the API response.
+  if (
+    process.env.ZAPIER_WEBHOOK_URL &&
+    payload.userEmail &&
+    payload.downloadUrl
+  ) {
+    try {
+      await axios.post(
+        process.env.ZAPIER_WEBHOOK_URL,
+        payload
+      );
+
+      console.log(
+        "[ZAPIER] Email webhook triggered successfully"
+      );
+    } catch (error) {
+      // Zapier email delivery is a side effect, not part of document generation.
+      // Failures are logged only so users still receive the original successful
+      // generation response even if Zapier is unavailable or rejects the request.
+      console.error(
+        "[ZAPIER] Webhook failed:",
+        error.message
+      );
+    }
+  }
 }
 
 generatorRouter.post(
@@ -81,6 +128,7 @@ generatorRouter.post(
       }
 
       console.log(`[GENERATOR] Assignment ready. Download URL: ${directUrl}`);
+      await triggerZapierDocumentEmail(req, result, "Assignment", directUrl);
       res.status(201).json({
         success: true,
         document: doc,
@@ -174,6 +222,7 @@ generatorRouter.post(
       }
 
       console.log(`[GENERATOR] Free writing ready. Download URL: ${directUrl}`);
+      await triggerZapierDocumentEmail(req, result, "Free Writing", directUrl);
       res.status(201).json({
         success: true,
         document: doc,
@@ -266,6 +315,7 @@ generatorRouter.post(
       }
 
       console.log(`[GENERATOR] Literature survey ready. Download URL: ${directUrl}`);
+      await triggerZapierDocumentEmail(req, result, "Literature Survey", directUrl);
       res.status(201).json({
         success: true,
         document: doc,
