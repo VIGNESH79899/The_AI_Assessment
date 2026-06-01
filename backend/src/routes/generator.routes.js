@@ -29,8 +29,97 @@ function getAiDownloadUrl(result) {
   return result?.url || result?.downloadUrl || result?.fileUrl || result?.docxUrl || "";
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function buildDocumentReadyEmailHtml({ userName, documentTitle, documentType, downloadUrl }) {
+  const safeUserName = escapeHtml(userName || "User");
+  const safeDocumentTitle = escapeHtml(documentTitle || "Generated Document");
+  const safeDocumentType = escapeHtml(documentType || "Document");
+  const safeDownloadUrl = escapeHtml(downloadUrl || "#");
+
+  return `
+<div style="margin:0;padding:0;background-color:#F4F7FB;font-family:Arial,Helvetica,sans-serif;color:#111827;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background-color:#F4F7FB;margin:0;padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background-color:#FFFFFF;border-radius:12px;border:1px solid #E5E7EB;overflow:hidden;">
+          <tr>
+            <td style="padding:28px 28px 12px 28px;text-align:center;">
+              <div style="font-size:18px;font-weight:700;color:#111827;letter-spacing:0;">
+                AI Assessment Maker
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 28px 4px 28px;text-align:center;">
+              <h1 style="margin:0;font-size:26px;line-height:34px;font-weight:700;color:#111827;">
+                Your Document Is Ready 🎉
+              </h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:18px 28px 0 28px;">
+              <p style="margin:0 0 14px 0;font-size:16px;line-height:24px;color:#374151;">
+                Hello ${safeUserName},
+              </p>
+              <p style="margin:0 0 18px 0;font-size:16px;line-height:24px;color:#374151;">
+                Your AI-generated <strong style="color:#111827;">${safeDocumentType}</strong> has been successfully created.
+              </p>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px 0;background-color:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;">
+                <tr>
+                  <td style="padding:16px 18px;">
+                    <div style="font-size:13px;line-height:18px;font-weight:700;color:#6B7280;text-transform:uppercase;">
+                      Document
+                    </div>
+                    <div style="margin-top:6px;font-size:17px;line-height:24px;font-weight:700;color:#111827;">
+                      ${safeDocumentTitle}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:28px auto 30px auto;">
+                <tr>
+                  <td align="center" bgcolor="#2563EB" style="border-radius:8px;background-color:#2563EB;">
+                    <a href="${safeDownloadUrl}" target="_blank" style="display:inline-block;padding:14px 28px;font-size:15px;line-height:20px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:8px;background-color:#2563EB;">
+                      Download Your Document
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0 0 18px 0;font-size:15px;line-height:23px;color:#4B5563;text-align:center;">
+                Need help? Reply to this email and our team will assist you.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:22px 28px 28px 28px;border-top:1px solid #E5E7EB;">
+              <p style="margin:0;font-size:15px;line-height:22px;color:#374151;">
+                Best Regards,<br>
+                <strong style="color:#111827;">AI Assessment Maker Team</strong>
+              </p>
+            </td>
+          </tr>
+        </table>
+        <div style="max-width:600px;margin:16px auto 0 auto;text-align:center;font-size:12px;line-height:18px;color:#6B7280;">
+          Powered by AI Assessment Maker
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>`.trim();
+}
+
 async function triggerZapierDocumentEmail(req, result, documentType, downloadUrl) {
   const body = req.validated?.body || req.body || {};
+  const documentTitle = body.document_name || body.topic || "Generated Document";
+  const resolvedDownloadUrl = result?.downloadUrl || result?.fileUrl || result?.docxUrl || downloadUrl || null;
 
   // Zapier is called only after the document has been generated, saved as ready,
   // and a frontend-safe download URL is available. The webhook starts the
@@ -39,9 +128,16 @@ async function triggerZapierDocumentEmail(req, result, documentType, downloadUrl
     userId: req.user?.id || req.user?._id?.toString?.() || null,
     userName: req.user?.name || "User",
     userEmail: req.user?.email || null,
-    documentTitle: body.document_name || body.topic || "Generated Document",
+    documentTitle,
     documentType,
-    downloadUrl: result?.downloadUrl || result?.fileUrl || result?.docxUrl || downloadUrl || null,
+    downloadUrl: resolvedDownloadUrl,
+    emailSubject: "Your AI-Generated Document Is Ready",
+    emailHtml: buildDocumentReadyEmailHtml({
+      userName: req.user?.name || "User",
+      documentTitle,
+      documentType,
+      downloadUrl: resolvedDownloadUrl
+    }),
     generatedAt: new Date().toISOString()
   };
 
