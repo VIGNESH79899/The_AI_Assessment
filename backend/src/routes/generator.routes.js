@@ -29,6 +29,26 @@ function getAiDownloadUrl(result) {
   return result?.url || result?.downloadUrl || result?.fileUrl || result?.docxUrl || "";
 }
 
+function getErrorDetails(error) {
+  return error?.response?.data?.detail || error?.response?.data || error?.message || "Unknown error";
+}
+
+function createGenerationError(error, fallbackMessage) {
+  if (error instanceof ApiError) {
+    return error;
+  }
+
+  if (error?.response?.status === 429) {
+    return new ApiError(
+      429,
+      "AI generation is temporarily rate limited. Please try again in a few minutes.",
+      getErrorDetails(error)
+    );
+  }
+
+  return new ApiError(502, fallbackMessage, getErrorDetails(error));
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -60,7 +80,7 @@ function buildDocumentReadyEmailHtml({ userName, documentTitle, documentType, do
           <tr>
             <td style="padding:12px 28px 4px 28px;text-align:center;">
               <h1 style="margin:0;font-size:26px;line-height:34px;font-weight:700;color:#111827;">
-                Your Document Is Ready 🎉
+                Your Document Is Ready &#127881;
               </h1>
             </td>
           </tr>
@@ -252,11 +272,12 @@ generatorRouter.post(
         sectionsCount: result.sections_count || 0
       });
     } catch (error) {
-      console.error("[GENERATOR] Assignment generation failed:", error.response?.data || error.message);
+      const generationError = createGenerationError(error, "AI document generation failed");
+      console.error("[GENERATOR] Assignment generation failed:", generationError.details || generationError.message);
       doc.status = "failed";
-      doc.error = error.message;
+      doc.error = generationError.message;
       await doc.save();
-      throw new ApiError(502, "AI document generation failed", error.message);
+      throw generationError;
     }
   })
 );
@@ -348,11 +369,12 @@ generatorRouter.post(
         sectionsCount: result.sections_count || 0
       });
     } catch (error) {
-      console.error("[GENERATOR] Free writing generation failed:", error.response?.data || error.message);
+      const generationError = createGenerationError(error, "AI free writing generation failed");
+      console.error("[GENERATOR] Free writing generation failed:", generationError.details || generationError.message);
       doc.status = "failed";
-      doc.error = error.message;
+      doc.error = generationError.message;
       await doc.save();
-      throw new ApiError(502, "AI free writing generation failed", error.message);
+      throw generationError;
     }
   })
 );
@@ -443,11 +465,12 @@ generatorRouter.post(
         sectionsCount: result.sections_count || 0
       });
     } catch (error) {
-      console.error("[GENERATOR] Literature survey generation failed:", error.response?.data || error.message);
+      const generationError = createGenerationError(error, "AI literature survey generation failed");
+      console.error("[GENERATOR] Literature survey generation failed:", generationError.details || generationError.message);
       doc.status = "failed";
-      doc.error = error.message;
+      doc.error = generationError.message;
       await doc.save();
-      throw new ApiError(502, "AI literature survey generation failed", error.message);
+      throw generationError;
     }
   })
 );
