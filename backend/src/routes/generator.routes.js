@@ -106,7 +106,7 @@ generatorRouter.post(
         instructor: z.string().optional(),
         assessment: z.string().optional(),
         date: z.string().optional(),
-        topic: z.string().min(3),
+        topic: z.string().trim().min(2),
         document_name: z.string().optional(),
         template_path: z.string().optional()
       })
@@ -199,7 +199,7 @@ generatorRouter.post(
         instructor: z.string().optional(),
         assessment: z.string().optional(),
         date: z.string().optional(),
-        topic: z.string().min(3),
+        topic: z.string().trim().min(2),
         academic_domain: z.string().optional(),
         document_name: z.string().optional(),
         template_path: z.string().optional()
@@ -291,7 +291,7 @@ generatorRouter.post(
         instructor: z.string().optional(),
         assessment: z.string().optional(),
         date: z.string().optional(),
-        topic: z.string().min(3),
+        topic: z.string().trim().min(2),
         document_name: z.string().optional(),
         template_path: z.string().optional(),
         selected_papers: z.array(z.any()).min(1, "At least one paper must be selected")
