@@ -25,6 +25,10 @@ function normalizeAiDownloadUrl(url) {
   return `${env.aiServiceUrl}${url.startsWith("/") ? url : `/${url}`}`;
 }
 
+function getAiDownloadUrl(result) {
+  return result?.url || result?.downloadUrl || result?.fileUrl || result?.docxUrl || "";
+}
+
 async function triggerZapierDocumentEmail(req, result, documentType, downloadUrl) {
   const body = req.validated?.body || req.body || {};
 
@@ -68,6 +72,20 @@ async function triggerZapierDocumentEmail(req, result, documentType, downloadUrl
         error.message
       );
     }
+  }
+}
+
+async function safelyTriggerZapierDocumentEmail(req, result, documentType, downloadUrl) {
+  try {
+    await triggerZapierDocumentEmail(req, result, documentType, downloadUrl);
+  } catch (error) {
+    // This outer guard is intentionally redundant with the webhook try/catch.
+    // It guarantees future edits to the Zapier helper cannot turn a successful
+    // document generation into a failed API response.
+    console.error(
+      "[ZAPIER] Webhook failed:",
+      error.message
+    );
   }
 }
 
@@ -115,20 +133,21 @@ generatorRouter.post(
 
     try {
       const result = await generateAssignment(req.validated.body);
-      if (!result?.url || typeof result.url !== "string") {
+      const aiDownloadUrl = getAiDownloadUrl(result);
+      if (typeof aiDownloadUrl !== "string" || !aiDownloadUrl) {
         throw new ApiError(502, "AI service did not return a download URL");
       }
 
-      doc.aiServiceUrl = result.url;
+      doc.aiServiceUrl = aiDownloadUrl;
       doc.status = "ready";
       await doc.save();
-      const directUrl = normalizeAiDownloadUrl(result.url);
+      const directUrl = normalizeAiDownloadUrl(aiDownloadUrl);
       if (!directUrl) {
         throw new ApiError(502, "AI service returned an invalid download URL");
       }
 
       console.log(`[GENERATOR] Assignment ready. Download URL: ${directUrl}`);
-      await triggerZapierDocumentEmail(req, result, "Assignment", directUrl);
+      await safelyTriggerZapierDocumentEmail(req, result, "Assignment", directUrl);
       res.status(201).json({
         success: true,
         document: doc,
@@ -137,6 +156,7 @@ generatorRouter.post(
         sectionsCount: result.sections_count || 0
       });
     } catch (error) {
+      console.error("[GENERATOR] Assignment generation failed:", error.response?.data || error.message);
       doc.status = "failed";
       doc.error = error.message;
       await doc.save();
@@ -209,20 +229,21 @@ generatorRouter.post(
 
     try {
       const result = await generateFreeWriting(req.validated.body);
-      if (!result?.url || typeof result.url !== "string") {
+      const aiDownloadUrl = getAiDownloadUrl(result);
+      if (typeof aiDownloadUrl !== "string" || !aiDownloadUrl) {
         throw new ApiError(502, "AI service did not return a download URL");
       }
 
-      doc.aiServiceUrl = result.url;
+      doc.aiServiceUrl = aiDownloadUrl;
       doc.status = "ready";
       await doc.save();
-      const directUrl = normalizeAiDownloadUrl(result.url);
+      const directUrl = normalizeAiDownloadUrl(aiDownloadUrl);
       if (!directUrl) {
         throw new ApiError(502, "AI service returned an invalid download URL");
       }
 
       console.log(`[GENERATOR] Free writing ready. Download URL: ${directUrl}`);
-      await triggerZapierDocumentEmail(req, result, "Free Writing", directUrl);
+      await safelyTriggerZapierDocumentEmail(req, result, "Free Writing", directUrl);
       res.status(201).json({
         success: true,
         document: doc,
@@ -231,6 +252,7 @@ generatorRouter.post(
         sectionsCount: result.sections_count || 0
       });
     } catch (error) {
+      console.error("[GENERATOR] Free writing generation failed:", error.response?.data || error.message);
       doc.status = "failed";
       doc.error = error.message;
       await doc.save();
@@ -302,20 +324,21 @@ generatorRouter.post(
 
     try {
       const result = await generateLiteratureSurvey(req.validated.body);
-      if (!result?.url || typeof result.url !== "string") {
+      const aiDownloadUrl = getAiDownloadUrl(result);
+      if (typeof aiDownloadUrl !== "string" || !aiDownloadUrl) {
         throw new ApiError(502, "AI service did not return a download URL");
       }
 
-      doc.aiServiceUrl = result.url;
+      doc.aiServiceUrl = aiDownloadUrl;
       doc.status = "ready";
       await doc.save();
-      const directUrl = normalizeAiDownloadUrl(result.url);
+      const directUrl = normalizeAiDownloadUrl(aiDownloadUrl);
       if (!directUrl) {
         throw new ApiError(502, "AI service returned an invalid download URL");
       }
 
       console.log(`[GENERATOR] Literature survey ready. Download URL: ${directUrl}`);
-      await triggerZapierDocumentEmail(req, result, "Literature Survey", directUrl);
+      await safelyTriggerZapierDocumentEmail(req, result, "Literature Survey", directUrl);
       res.status(201).json({
         success: true,
         document: doc,
@@ -324,6 +347,7 @@ generatorRouter.post(
         sectionsCount: result.sections_count || 0
       });
     } catch (error) {
+      console.error("[GENERATOR] Literature survey generation failed:", error.response?.data || error.message);
       doc.status = "failed";
       doc.error = error.message;
       await doc.save();
