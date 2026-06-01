@@ -146,8 +146,8 @@ async def generate(req: GenerateRequest, x_internal_service_token: str = Header(
     try:
         ai_output = workflow.execute(request_id=request_id)
     except Exception as e:
-        logger.error(f"[{request_id}] AI generation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {e}")
+        logger.error(f"[{request_id}] AI generation failed; using fallback document content: {e}")
+        ai_output = workflow._fallback_payload()
 
     data = {
         "document_name": filename,
@@ -224,8 +224,8 @@ async def generate_free_writing(req: GenerateFreeWritingRequest, x_internal_serv
     try:
         ai_output = workflow.execute(request_id=request_id)
     except Exception as e:
-        logger.error(f"[{request_id}] AI generation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {e}")
+        logger.error(f"[{request_id}] AI generation failed; using fallback document content: {e}")
+        ai_output = workflow._fallback_payload()
 
     data = {
         "document_name": filename,
@@ -329,8 +329,9 @@ async def generate_literature_survey(req: GenerateLiteratureSurveyRequest, x_int
     try:
         ai_output = workflow.execute(request_id=request_id)
     except Exception as e:
-        logger.error(f"[{request_id}] AI survey generation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"AI survey generation failed: {e}")
+        logger.error(f"[{request_id}] AI survey generation failed; using fallback document content: {e}")
+        ai_output = workflow._fallback_payload()
+        ai_output["papers"] = req.selected_papers
 
     data = {
         "document_name": filename,
