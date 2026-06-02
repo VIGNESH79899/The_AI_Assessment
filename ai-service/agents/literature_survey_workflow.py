@@ -339,12 +339,12 @@ Return ONLY a valid JSON object. Do NOT include markdown code blocks. The JSON m
                         if isinstance(p_authors, str):
                             p_authors = [p_authors]
                         for auth in p_authors:
-                            parts = auth.strip().replace(",", "").split()
-                            if parts:
-                                surname = parts[-1].lower()
-                                if surname in author_clean or author_clean in surname:
-                                    found = True
-                                    break
+                            # Clean symbols and split into words
+                            clean_auth = re.sub(r"[^a-zA-Z\s]", "", auth).lower()
+                            parts = clean_auth.split()
+                            if any(word == author_clean or author_clean in word for word in parts):
+                                found = True
+                                break
                     if found:
                         break
                 if not found:
