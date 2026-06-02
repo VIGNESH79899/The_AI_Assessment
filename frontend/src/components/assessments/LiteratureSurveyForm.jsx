@@ -5,6 +5,8 @@ import {
   Plus, Trash2, MapPin, Building, Award, CheckCircle2, ChevronRight, ChevronLeft
 } from "lucide-react";
 
+import { apiRequest } from "../../App.jsx";
+
 const API_URL = import.meta.env.VITE_API_URL || "";
 
 export function LiteratureSurveyForm({ 
@@ -76,20 +78,7 @@ export function LiteratureSurveyForm({
     setSearching(true);
     setSearchError("");
     try {
-      const token = localStorage.getItem("accessToken");
-      const url = `${API_URL}/api/generator/literature-search?q=${encodeURIComponent(query.trim())}`;
-      
-      const response = await fetch(url, {
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        }
-      });
-      
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to search papers");
-      }
+      const data = await apiRequest(`/api/generator/literature-search?q=${encodeURIComponent(query.trim())}`);
       
       const papers = Array.isArray(data.results)
         ? data.results
@@ -120,7 +109,8 @@ export function LiteratureSurveyForm({
     }, 800); // 800ms debounce
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery, performSearch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
 
   const togglePaperSelection = (paper) => {
     const isAlreadySelected = selectedPapers.some(

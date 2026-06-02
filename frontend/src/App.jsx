@@ -34,16 +34,45 @@ import { LiteratureSurveyForm } from "./components/assessments/LiteratureSurveyF
 const API_URL = import.meta.env.VITE_API_URL || "";
 
 // Reusable apiRequest utility
-async function apiRequest(path, options = {}) {
-  const token = localStorage.getItem("accessToken");
-  const response = await fetch(`${API_URL}${path}`, {
+export async function apiRequest(path, options = {}) {
+  let token = localStorage.getItem("accessToken");
+  let response = await fetch(`${API_URL}${path}`, {
     ...options,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers
     }
   });
+
+  if (response.status === 401 && path !== "/api/auth/refresh" && path !== "/api/auth/login") {
+    try {
+      const refreshResponse = await fetch(`${API_URL}/api/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" }
+      });
+      if (refreshResponse.ok) {
+        const refreshData = await refreshResponse.json();
+        if (refreshData.accessToken) {
+          localStorage.setItem("accessToken", refreshData.accessToken);
+          token = refreshData.accessToken;
+          response = await fetch(`${API_URL}${path}`, {
+            ...options,
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+              ...options.headers
+            }
+          });
+        }
+      }
+    } catch (refreshErr) {
+      console.warn("Token refresh failed:", refreshErr);
+    }
+  }
   
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
