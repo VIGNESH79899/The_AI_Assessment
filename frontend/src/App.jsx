@@ -1089,11 +1089,14 @@ function AuthCard({ setActiveView, fetchUserProfile, showToast }) {
   };
 
   return (
-    <div className="w-full max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-6">
-      
+    <div className="w-full max-w-md bg-white/80 dark:bg-zinc-900/40 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-8 shadow-xl dark:shadow-2xl space-y-7 relative overflow-hidden">
+      {/* Decorative Orbs Inside Card */}
+      <div className="absolute -top-10 -right-10 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
+      <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-pink-500/10 rounded-full blur-xl pointer-events-none"></div>
+
       {/* Head */}
-      <div className="text-center space-y-1.5">
-        <h2 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">
+      <div className="text-center space-y-1.5 relative z-10">
+        <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
           {isLogin ? "Welcome back" : "Create an account"}
         </h2>
         <p className="text-xs text-zinc-400 dark:text-zinc-500 font-medium">
@@ -1101,16 +1104,16 @@ function AuthCard({ setActiveView, fetchUserProfile, showToast }) {
         </p>
       </div>
 
-      {/* Tabs */}
-      <div className="grid grid-cols-2 p-1 bg-zinc-100 dark:bg-zinc-950 rounded-xl border border-zinc-200/30 dark:border-zinc-900/30 text-xs font-semibold">
+      {/* Tabs Switcher */}
+      <div className="grid grid-cols-2 p-1 bg-zinc-100/80 dark:bg-zinc-950/80 rounded-xl border border-zinc-200/40 dark:border-zinc-900/40 text-xs font-semibold relative z-10">
         <button
           onClick={() => {
             setIsLogin(true);
             setErrorMsg("");
           }}
-          className={`py-2 rounded-lg transition-all ${
+          className={`py-2.5 rounded-lg transition-all duration-300 ${
             isLogin
-              ? "bg-white dark:bg-zinc-800 shadow-sm text-zinc-950 dark:text-white"
+              ? "bg-white dark:bg-zinc-800 shadow-sm text-zinc-955 dark:text-white font-bold"
               : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-200"
           }`}
         >
@@ -1121,9 +1124,9 @@ function AuthCard({ setActiveView, fetchUserProfile, showToast }) {
             setIsLogin(false);
             setErrorMsg("");
           }}
-          className={`py-2 rounded-lg transition-all ${
+          className={`py-2.5 rounded-lg transition-all duration-300 ${
             !isLogin
-              ? "bg-white dark:bg-zinc-800 shadow-sm text-zinc-950 dark:text-white"
+              ? "bg-white dark:bg-zinc-800 shadow-sm text-zinc-955 dark:text-white font-bold"
               : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-200"
           }`}
         >
@@ -1132,12 +1135,12 @@ function AuthCard({ setActiveView, fetchUserProfile, showToast }) {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
         {!isLogin && (
           <div className="space-y-1.5">
             <label className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Name</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-650">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500">
                 <User className="w-4 h-4" />
               </span>
               <input
@@ -1146,7 +1149,7 @@ function AuthCard({ setActiveView, fetchUserProfile, showToast }) {
                 placeholder="Vignesh Kumar"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full pl-9 pr-4 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-650 transition-all text-zinc-900 dark:text-zinc-100"
+                className="w-full pl-10 pr-4 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500/80 dark:focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 text-zinc-900 dark:text-zinc-100"
               />
             </div>
           </div>
@@ -1155,7 +1158,7 @@ function AuthCard({ setActiveView, fetchUserProfile, showToast }) {
         <div className="space-y-1.5">
           <label className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Email address</label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-650">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500">
               <Mail className="w-4 h-4" />
             </span>
             <input
@@ -1164,7 +1167,7 @@ function AuthCard({ setActiveView, fetchUserProfile, showToast }) {
               placeholder="name@example.com"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full pl-9 pr-4 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-650 transition-all text-zinc-900 dark:text-zinc-100"
+              className="w-full pl-10 pr-4 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500/80 dark:focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 text-zinc-900 dark:text-zinc-100"
             />
           </div>
         </div>
@@ -1172,7 +1175,7 @@ function AuthCard({ setActiveView, fetchUserProfile, showToast }) {
         <div className="space-y-1.5">
           <label className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Password</label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-650">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500">
               <Key className="w-4 h-4" />
             </span>
             <input
@@ -1181,25 +1184,25 @@ function AuthCard({ setActiveView, fetchUserProfile, showToast }) {
               placeholder="Minimum 8 characters"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full pl-9 pr-4 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-650 transition-all text-zinc-900 dark:text-zinc-100"
+              className="w-full pl-10 pr-4 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500/80 dark:focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 text-zinc-900 dark:text-zinc-100"
             />
           </div>
         </div>
 
         {errorMsg && (
-          <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200/50 dark:border-rose-900/50 rounded-xl flex items-start gap-2.5 text-xs text-rose-800 dark:text-rose-300">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span className="leading-relaxed">{errorMsg}</span>
+          <div className="p-3.5 bg-rose-50 dark:bg-rose-950/30 border border-rose-200/50 dark:border-rose-900/40 rounded-xl flex items-start gap-2.5 text-xs text-rose-800 dark:text-rose-350">
+            <AlertCircle className="w-4.5 h-4.5 flex-shrink-0 mt-0.5" />
+            <span className="leading-relaxed font-medium">{errorMsg}</span>
           </div>
         )}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 font-semibold rounded-xl text-xs shadow-sm transition-all flex items-center justify-center gap-1.5"
+          className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 font-semibold rounded-xl text-sm transition-all flex items-center justify-center gap-1.5"
         >
           {loading ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <span>{isLogin ? "Continue" : "Sign Up"}</span>
           )}
@@ -1207,26 +1210,26 @@ function AuthCard({ setActiveView, fetchUserProfile, showToast }) {
       </form>
 
       {/* Divider */}
-      <div className="relative flex items-center justify-center my-1.5">
+      <div className="relative flex items-center justify-center my-2 relative z-10">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-zinc-100 dark:border-zinc-800"></div>
+          <div className="w-full border-t border-zinc-200/50 dark:border-zinc-800/80"></div>
         </div>
-        <span className="relative px-3 bg-white dark:bg-zinc-900 text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-wider">
+        <span className="relative px-3.5 bg-white dark:bg-zinc-950 text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-wider">
           Or continue with
         </span>
       </div>
 
       {/* OAuth Rows */}
-      <div className="grid grid-cols-2 gap-2 text-xs font-semibold">
+      <div className="grid grid-cols-2 gap-3 text-xs font-bold relative z-10">
         <a
           href={`${API_URL}/api/auth/google`}
-          className="flex items-center justify-center gap-2 py-2 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900/50 rounded-xl text-zinc-700 dark:text-zinc-300 transition-all text-center no-underline"
+          className="flex items-center justify-center gap-2 py-2.5 border border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-zinc-900/30 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/50 rounded-xl text-zinc-700 dark:text-zinc-300 hover:border-indigo-500/30 transition-all duration-300 text-center no-underline shadow-sm hover:shadow"
         >
           Google
         </a>
         <a
           href={`${API_URL}/api/auth/github`}
-          className="flex items-center justify-center gap-2 py-2 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900/50 rounded-xl text-zinc-700 dark:text-zinc-300 transition-all text-center no-underline"
+          className="flex items-center justify-center gap-2 py-2.5 border border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-zinc-900/30 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/50 rounded-xl text-zinc-700 dark:text-zinc-300 hover:border-indigo-500/30 transition-all duration-300 text-center no-underline shadow-sm hover:shadow"
         >
           GitHub
         </a>
