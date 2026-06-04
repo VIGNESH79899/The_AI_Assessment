@@ -55,6 +55,10 @@ function sanitizeUser(user) {
     email: user.email,
     role: user.role,
     avatarUrl: user.avatarUrl,
+    avatar: user.avatar || user.avatarUrl,
+    provider: user.provider || "local",
+    googleId: user.googleId,
+    githubId: user.githubId,
     referralCode: user.referralCode,
     subscription: user.subscription
   };
@@ -137,13 +141,20 @@ authRouter.post(
 authRouter.get("/me", requireAuth, (req, res) => res.json({ user: sanitizeUser(req.user) }));
 
 authRouter.get("/google", (req, res, next) => {
-  if (!env.googleClientId) return res.redirect(`${env.clientUrl}/login?oauth=google-unconfigured`);
+  if (!env.googleClientId || !env.googleClientSecret) {
+    return res.redirect(`${env.clientUrl}/login?oauth=google-unconfigured`);
+  }
   passport.authenticate("google", { scope: ["profile", "email"], session: false })(req, res, next);
 });
 
 authRouter.get(
   "/google/callback",
-  passport.authenticate("google", { session: false, failureRedirect: `${env.clientUrl}/login?error=oauth` }),
+  (req, res, next) => {
+    if (!env.googleClientId || !env.googleClientSecret) {
+      return res.redirect(`${env.clientUrl}/login?oauth=google-unconfigured`);
+    }
+    passport.authenticate("google", { session: false, failureRedirect: `${env.clientUrl}/login?error=oauth` })(req, res, next);
+  },
   (req, res) => {
     const { accessToken } = issueAuth(res, req.user);
     res.redirect(`${env.clientUrl}/auth/callback?token=${accessToken}`);
@@ -151,15 +162,47 @@ authRouter.get(
 );
 
 authRouter.get("/github", (req, res, next) => {
-  if (!env.githubClientId) return res.redirect(`${env.clientUrl}/login?oauth=github-unconfigured`);
+  if (!env.githubClientId || !env.githubClientSecret) {
+    return res.redirect(`${env.clientUrl}/login?oauth=github-unconfigured`);
+  }
   passport.authenticate("github", { scope: ["user:email"], session: false })(req, res, next);
 });
 
 authRouter.get(
   "/github/callback",
-  passport.authenticate("github", { session: false, failureRedirect: `${env.clientUrl}/login?error=oauth` }),
+  (req, res, next) => {
+    if (!env.githubClientId || !env.githubClientSecret) {
+      return res.redirect(`${env.clientUrl}/login?oauth=github-unconfigured`);
+    }
+    passport.authenticate("github", { session: false, failureRedirect: `${env.clientUrl}/login?error=oauth` })(req, res, next);
+  },
   (req, res) => {
     const { accessToken } = issueAuth(res, req.user);
     res.redirect(`${env.clientUrl}/auth/callback?token=${accessToken}`);
   }
+);
+
+authRouter.put(
+  "/profile",
+  requireAuth,
+  validate(
+    z.object({
+      body: z.object({
+        name: z.string().min(2).optional(),
+        avatar: z.string().url().or(z.literal("")).optional()
+      })
+    })
+  ),
+  asyncHandler(async (req, res) => {
+    const { name, avatar } = req.validated.body;
+    
+    if (name) req.user.name = name;
+    if (avatar !== undefined) {
+      req.user.avatar = avatar;
+      req.user.avatarUrl = avatar;
+    }
+    
+    await req.user.save();
+    res.json({ ok: true, user: sanitizeUser(req.user) });
+  })
 );

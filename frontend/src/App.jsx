@@ -91,7 +91,16 @@ const fadeUp = {
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
-  const [activeView, setActiveView] = useState("home");
+  const [activeView, setActiveView] = useState(() => {
+    const path = window.location.pathname;
+    if (path === "/auth/callback" || path.startsWith("/auth/callback")) {
+      return "callback";
+    }
+    if (path === "/login" || path.startsWith("/login")) {
+      return "login";
+    }
+    return "home";
+  });
   
   // Auth state
   const [user, setUser] = useState(null);
@@ -174,8 +183,75 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchUserProfile();
+    const path = window.location.pathname;
+    if (path === "/auth/callback" || path.startsWith("/auth/callback")) {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
+      const error = params.get("error");
+      
+      if (error) {
+        showToast(`Authentication failed: ${error}`, "error");
+        setActiveView("login");
+        window.history.replaceState({}, document.title, "/");
+        setLoadingUser(false);
+      } else if (token) {
+        localStorage.setItem("accessToken", token);
+        setLoadingUser(true);
+        apiRequest("/api/auth/me")
+          .then((data) => {
+            if (data.user) {
+              setUser(data.user);
+              fetchHistory();
+              showToast("Logged in successfully with OAuth!", "success");
+              setActiveView("dashboard");
+            } else {
+              throw new Error("Invalid user data");
+            }
+          })
+          .catch((err) => {
+            console.error("OAuth profile fetch failed:", err);
+            localStorage.removeItem("accessToken");
+            setUser(null);
+            showToast("Failed to complete OAuth authentication.", "error");
+            setActiveView("login");
+          })
+          .finally(() => {
+            setLoadingUser(false);
+            window.history.replaceState({}, document.title, "/");
+          });
+      } else {
+        showToast("Missing authentication token.", "error");
+        setActiveView("login");
+        window.history.replaceState({}, document.title, "/");
+        setLoadingUser(false);
+      }
+    } else {
+      if (path === "/login" || path.startsWith("/login")) {
+        const params = new URLSearchParams(window.location.search);
+        const error = params.get("error");
+        const oauth = params.get("oauth");
+        if (error === "oauth") {
+          showToast("OAuth login failed. Please try again.", "error");
+        } else if (oauth === "google-unconfigured") {
+          showToast("Google OAuth is not configured in backend.", "error");
+        } else if (oauth === "github-unconfigured") {
+          showToast("GitHub OAuth is not configured in backend.", "error");
+        }
+        window.history.replaceState({}, document.title, "/");
+      }
+      fetchUserProfile();
+    }
   }, []);
+
+  // Pre-fill student name in form when user profile is loaded
+  useEffect(() => {
+    if (user && user.name && !formData.student_name) {
+      setFormData(prev => ({
+        ...prev,
+        student_name: user.name
+      }));
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -477,6 +553,16 @@ export default function App() {
             >
               History
             </button>
+            <button
+              onClick={() => setActiveView("profile")}
+              className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all ${
+                activeView === "profile"
+                  ? "bg-white dark:bg-zinc-800 shadow-sm text-zinc-900 dark:text-white"
+                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              }`}
+            >
+              Profile
+            </button>
           </nav>
         )}
 
@@ -493,7 +579,11 @@ export default function App() {
             <div className="h-9 w-20 bg-zinc-200 dark:bg-zinc-800 animate-pulse rounded-full"></div>
           ) : user ? (
             <div className="flex items-center gap-3">
-              <div className="hidden sm:block text-right">
+              <div 
+                onClick={() => setActiveView("profile")}
+                className="hidden sm:block text-right cursor-pointer hover:underline text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100"
+                title="View Profile Settings"
+              >
                 <span className="text-xs font-semibold tracking-tight">{user.name || "Demo User"}</span>
               </div>
               <button
@@ -716,6 +806,38 @@ export default function App() {
                   </button>
                 </div>
               </footer>
+            </motion.div>
+          )}
+
+          {/* ====================================================
+              CALLBACK PAGE
+              ==================================================== */}
+          {activeView === "callback" && (
+            <motion.div
+              key="callback"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="flex justify-center py-24"
+            >
+              <div className="w-full max-w-md bg-white/80 dark:bg-zinc-900/40 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-8 shadow-xl dark:shadow-2xl space-y-6 text-center relative overflow-hidden flex flex-col items-center justify-center">
+                <div className="absolute -top-10 -right-10 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
+                <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-pink-500/10 rounded-full blur-xl pointer-events-none"></div>
+                
+                <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-zinc-50 dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                  <div className="w-12 h-12 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin absolute" />
+                  <BrainCircuit className="w-5 h-5 text-indigo-500 animate-pulse" />
+                </div>
+                
+                <div className="space-y-2 relative z-10">
+                  <h2 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">
+                    Completing OAuth Login
+                  </h2>
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500 font-medium max-w-[280px] leading-relaxed">
+                    Securing your credentials and preparing your dashboard workspace...
+                  </p>
+                </div>
+              </div>
             </motion.div>
           )}
 
@@ -944,6 +1066,32 @@ export default function App() {
                   </div>
                 </div>
               )}
+            </motion.div>
+          )}
+
+          {/* ====================================================
+              PROFILE PAGE
+              ==================================================== */}
+          {activeView === "profile" && (
+            <motion.div
+              key="profile"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="max-w-md mx-auto space-y-6"
+            >
+              <div className="space-y-1">
+                <h1 className="text-2xl font-extrabold tracking-tight">Your Profile</h1>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Manage your account details and settings.
+                </p>
+              </div>
+
+              <ProfileForm 
+                user={user} 
+                setUser={setUser} 
+                showToast={showToast} 
+              />
             </motion.div>
           )}
 
@@ -1235,5 +1383,115 @@ function AuthCard({ setActiveView, fetchUserProfile, showToast }) {
         </a>
       </div>
     </div>
+  );
+}
+
+// ====================================================
+// PROFILE FORM SUBCOMPONENT
+// ====================================================
+function ProfileForm({ user, setUser, showToast }) {
+  const [name, setName] = useState(user?.name || "");
+  const [avatar, setAvatar] = useState(user?.avatar || user?.avatarUrl || "");
+  const [updating, setUpdating] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name || "");
+      setAvatar(user.avatar || user.avatarUrl || "");
+    }
+  }, [user]);
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      showToast("Name cannot be empty", "error");
+      return;
+    }
+    setUpdating(true);
+    try {
+      const data = await apiRequest("/api/auth/profile", {
+        method: "PUT",
+        body: JSON.stringify({ name, avatar })
+      });
+      if (data.ok && data.user) {
+        setUser(data.user);
+        showToast("Profile updated successfully!", "success");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || "Failed to update profile.", "error");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleUpdate} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-6">
+      {/* Avatar View */}
+      <div className="flex flex-col items-center gap-4 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+        <div className="relative w-20 h-20 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center shadow-inner">
+          {avatar ? (
+            <img src={avatar} alt={name} className="w-full h-full object-cover" />
+          ) : (
+            <User className="w-8 h-8 text-zinc-400" />
+          )}
+        </div>
+        <div className="text-center space-y-1">
+          <h3 className="text-sm font-bold text-zinc-905 dark:text-white">{user?.name}</h3>
+          <p className="text-xs text-zinc-400 dark:text-zinc-500 font-medium">{user?.email}</p>
+        </div>
+      </div>
+
+      {/* Inputs */}
+      <div className="space-y-4">
+        {/* Name */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Display Name</label>
+          <input
+            type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-4 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 transition-all text-zinc-900 dark:text-zinc-100"
+          />
+        </div>
+
+        {/* Avatar URL */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Avatar Image URL</label>
+          <input
+            type="url"
+            value={avatar}
+            onChange={(e) => setAvatar(e.target.value)}
+            placeholder="https://example.com/avatar.jpg"
+            className="w-full px-4 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 transition-all text-zinc-900 dark:text-zinc-100"
+          />
+        </div>
+
+        {/* Authentication Provider (Read only) */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Auth Method</label>
+          <div className="flex items-center gap-2.5 px-4 py-2.5 bg-zinc-100/50 dark:bg-zinc-900/50 border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl text-sm text-zinc-500 dark:text-zinc-400 font-medium">
+            <span className="capitalize">{user?.provider || "local"}</span>
+            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-500">
+              Active
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <button
+        type="submit"
+        disabled={updating}
+        className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 font-semibold rounded-xl text-sm transition-all flex items-center justify-center gap-1.5"
+      >
+        {updating ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <span>Save Changes</span>
+        )}
+      </button>
+    </form>
   );
 }

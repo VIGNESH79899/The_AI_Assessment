@@ -19,6 +19,14 @@ const userSchema = new mongoose.Schema(
     email: { type: String, trim: true, lowercase: true, unique: true, required: true },
     passwordHash: String,
     avatarUrl: String,
+    avatar: String,
+    provider: {
+      type: String,
+      enum: ["local", "google", "github"],
+      default: "local"
+    },
+    googleId: String,
+    githubId: String,
     role: { type: String, enum: ["user", "admin"], default: "user" },
     oauthProviders: [
       {

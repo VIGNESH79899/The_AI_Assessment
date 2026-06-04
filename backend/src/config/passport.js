@@ -12,11 +12,27 @@ async function findOrCreateOAuthUser({ provider, providerId, email, name, avatar
       email,
       name: name || email.split("@")[0],
       avatarUrl,
+      avatar: avatarUrl,
+      provider,
+      googleId: provider === "google" ? providerId : undefined,
+      githubId: provider === "github" ? providerId : undefined,
       referralCode: uuidv4().slice(0, 8).toUpperCase(),
       oauthProviders: [{ provider, providerId }]
     });
-  } else if (!user.oauthProviders.some((item) => item.provider === provider && item.providerId === providerId)) {
-    user.oauthProviders.push({ provider, providerId });
+  } else {
+    if (!user.oauthProviders.some((item) => item.provider === provider && item.providerId === providerId)) {
+      user.oauthProviders.push({ provider, providerId });
+    }
+    if (provider === "google") {
+      user.googleId = providerId;
+    } else if (provider === "github") {
+      user.githubId = providerId;
+    }
+    if (avatarUrl) {
+      user.avatarUrl = avatarUrl;
+      user.avatar = avatarUrl;
+    }
+    user.provider = provider;
     user.lastLoginAt = new Date();
     await user.save();
   }
