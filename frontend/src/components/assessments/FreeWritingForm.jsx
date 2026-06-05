@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { User, Calendar, GraduationCap, BookOpen, Sparkles, Loader2, Globe } from "lucide-react";
 
-export function FreeWritingForm({ formData, setFormData, onSubmit, generating }) {
+export function FreeWritingForm({ 
+  formData, 
+  setFormData, 
+  onSubmit, 
+  generating, 
+  isAiServiceReady = false, 
+  isCheckingReady = true 
+}) {
   const domains = [
     "Computer Science & IT",
     "Engineering & Technology",
@@ -286,12 +293,29 @@ export function FreeWritingForm({ formData, setFormData, onSubmit, generating })
         </div>
       </div>
 
-      <div className="border-t border-zinc-100 dark:border-zinc-800 pt-5 flex items-center justify-between">
-        <span className="text-xs text-zinc-400 dark:text-zinc-500">FastAPI backend queue is ready.</span>
+      <div className="border-t border-zinc-100 dark:border-zinc-800 pt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          {isCheckingReady ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-400" />
+              <span className="text-xs text-zinc-400 dark:text-zinc-500">Checking AI Engine status...</span>
+            </>
+          ) : isAiServiceReady ? (
+            <>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">FastAPI backend queue is ready.</span>
+            </>
+          ) : (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-500" />
+              <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold">AI Engine is waking up (may take 1-2 mins)...</span>
+            </>
+          )}
+        </div>
         <button
           type="submit"
-          disabled={generating}
-          className="flex items-center gap-2 px-5 py-2.5 bg-zinc-950 dark:bg-zinc-50 dark:text-zinc-950 text-white rounded-xl text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+          disabled={generating || !isAiServiceReady || isCheckingReady}
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-zinc-950 dark:bg-zinc-50 dark:text-zinc-950 text-white rounded-xl text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
         >
           {generating ? (
             <>

@@ -11,14 +11,22 @@ async function axiosRequestWithRetry(config, retries = 10, delayMs = 8000) {
     try {
       return await axios(config);
     } catch (error) {
-      const isRateLimited = 
-        error.response?.status === 429 || 
+      const status = error.response?.status;
+      const isRetryable = 
+        status === 429 || 
+        status === 502 || 
+        status === 503 || 
+        status === 504 || 
+        error.code === 'ECONNABORTED' || 
+        error.code === 'ECONNRESET' || 
+        error.code === 'ETIMEDOUT' ||
         error.response?.headers?.['x-render-routing'] === 'hibernate-rate-limited' ||
-        String(error.response?.data).includes('Too Many Requests');
+        String(error.response?.data).includes('Too Many Requests') ||
+        !error.response; // No response at all (network level failure)
 
-      if (isRateLimited && attempt < retries) {
+      if (isRetryable && attempt < retries) {
         console.warn(
-          `[AI_SERVICE] API rate limited or hibernating (${config.method} ${config.url}). ` +
+          `[AI_SERVICE] API rate limited, gateway error, or hibernating (Status: ${status || error.code || "NetworkError"} - ${config.method} ${config.url}). ` +
           `Retrying attempt ${attempt}/${retries} in ${delayMs}ms...`
         );
         await new Promise((resolve) => setTimeout(resolve, delayMs));

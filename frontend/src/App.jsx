@@ -117,6 +117,8 @@ export default function App() {
   const [selectedPapers, setSelectedPapers] = useState([]);
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null, name: "" });
   const [deleting, setDeleting] = useState(false);
+  const [isAiServiceReady, setIsAiServiceReady] = useState(false);
+  const [isCheckingReady, setIsCheckingReady] = useState(true);
   
   const [formData, setFormData] = useState({
     student_name: "",
@@ -253,14 +255,50 @@ export default function App() {
     }
   }, [user]);
 
-  // Trigger AI service wakeup when dashboard view becomes active or on mount (if user is authenticated)
+  // Trigger AI service wakeup when dashboard view becomes active, and poll for readiness status
   useEffect(() => {
-    if (user && activeView === "dashboard") {
-      console.log("[WAKEUP] Navigation to dashboard detected. Triggering AI service wakeup...");
-      apiRequest("/api/generator/wakeup", { method: "POST" }).catch(err => {
-        console.warn("[WAKEUP] Wakeup request failed:", err);
-      });
+    if (!user || activeView !== "dashboard") {
+      return;
     }
+
+    // Proactive wakeup call (fire and forget)
+    console.log("[WAKEUP] Navigation to dashboard detected. Triggering AI service wakeup...");
+    apiRequest("/api/generator/wakeup", { method: "POST" }).catch(err => {
+      console.warn("[WAKEUP] Wakeup request failed:", err);
+    });
+
+    let isMounted = true;
+    let pollInterval = null;
+
+    const checkStatus = async () => {
+      try {
+        const data = await apiRequest("/api/generator/status");
+        if (isMounted) {
+          setIsAiServiceReady(!!data.ready);
+          setIsCheckingReady(false);
+        }
+      } catch (err) {
+        console.warn("[STATUS] Failed to check status:", err);
+        if (isMounted) {
+          setIsAiServiceReady(false);
+          setIsCheckingReady(false);
+        }
+      }
+    };
+
+    // Run status check immediately
+    setIsCheckingReady(true);
+    checkStatus();
+
+    // Check status every 5 seconds
+    pollInterval = setInterval(checkStatus, 5000);
+
+    return () => {
+      isMounted = false;
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
   }, [activeView, user]);
 
   const handleLogout = async () => {
@@ -912,6 +950,8 @@ export default function App() {
                   setFormData={setFormData}
                   onSubmit={handleGenerate}
                   generating={generating}
+                  isAiServiceReady={isAiServiceReady}
+                  isCheckingReady={isCheckingReady}
                 />
               ) : assessmentType === "literature_survey" ? (
                 <LiteratureSurveyForm
@@ -921,6 +961,8 @@ export default function App() {
                   generating={generating}
                   selectedPapers={selectedPapers}
                   setSelectedPapers={setSelectedPapers}
+                  isAiServiceReady={isAiServiceReady}
+                  isCheckingReady={isCheckingReady}
                 />
               ) : (
                 <ReflectiveJournalForm
@@ -928,6 +970,8 @@ export default function App() {
                   setFormData={setFormData}
                   onSubmit={handleGenerate}
                   generating={generating}
+                  isAiServiceReady={isAiServiceReady}
+                  isCheckingReady={isCheckingReady}
                 />
               )}
             </motion.div>

@@ -15,7 +15,9 @@ export function LiteratureSurveyForm({
   onSubmit, 
   generating, 
   selectedPapers, 
-  setSelectedPapers 
+  setSelectedPapers,
+  isAiServiceReady = false,
+  isCheckingReady = true
 }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState(formData.topic || "");
@@ -911,23 +913,43 @@ export function LiteratureSurveyForm({
                 Next Step <ChevronRight className="w-4 h-4" />
               </button>
             ) : (
-              <button
-                type="submit"
-                disabled={generating || selectedPapers.length === 0}
-                className="flex items-center gap-2 px-6 py-3 bg-zinc-950 dark:bg-zinc-50 dark:text-zinc-950 text-white rounded-xl text-sm font-bold hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 shadow-md"
-              >
-                {generating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Synthesizing Literature Survey...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4" />
-                    <span>Generate Survey ({selectedPapers.length} References)</span>
-                  </>
-                )}
-              </button>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex items-center gap-2">
+                  {isCheckingReady ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-400" />
+                      <span className="text-xs text-zinc-450 dark:text-zinc-500">Checking AI Engine...</span>
+                    </>
+                  ) : isAiServiceReady ? (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">FastAPI backend queue is ready.</span>
+                    </>
+                  ) : (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-500" />
+                      <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold">Waking up AI Engine (1-2 mins)...</span>
+                    </>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={generating || selectedPapers.length === 0 || !isAiServiceReady || isCheckingReady}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-zinc-950 dark:bg-zinc-50 dark:text-zinc-950 text-white rounded-xl text-sm font-bold hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 shadow-md"
+                >
+                  {generating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Synthesizing Literature Survey...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Generate Survey ({selectedPapers.length} References)</span>
+                    </>
+                  )}
+                </button>
+              </div>
             )}
           </div>
           

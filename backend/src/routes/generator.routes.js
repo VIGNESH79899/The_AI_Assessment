@@ -222,6 +222,27 @@ generatorRouter.post(
   })
 );
 
+generatorRouter.get(
+  "/generator/status",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const healthUrl = `${env.aiServiceUrl.replace(/\/+$/, '')}/health`;
+    try {
+      const response = await axios.get(healthUrl, {
+        headers: { "x-internal-service-token": env.aiServiceToken || "" },
+        timeout: 2000 // 2 seconds timeout for fast status checks
+      });
+      if (response.status === 200) {
+        return res.json({ ready: true });
+      }
+    } catch (err) {
+      console.log(`[STATUS] Service check failed, not ready: ${err.message}`);
+    }
+    res.json({ ready: false });
+  })
+);
+
+
 generatorRouter.post(
   "/generator/assignments",
   requireAuth,
