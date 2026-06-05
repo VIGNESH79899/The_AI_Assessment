@@ -206,6 +206,23 @@ async function safelyTriggerZapierDocumentEmail(req, result, documentType, downl
 }
 
 generatorRouter.post(
+  "/generator/wakeup",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const healthUrl = `${env.aiServiceUrl.replace(/\/+$/, '')}/health`;
+    console.log(`[WAKEUP] Triggering background wakeup ping to: ${healthUrl}`);
+    axios.get(healthUrl, {
+      headers: { "x-internal-service-token": env.aiServiceToken || "" },
+      timeout: 10000
+    }).catch(err => {
+      // Ignore errors, just want to trigger Render wake up
+      console.log(`[WAKEUP] Background ping status: ${err.response?.status || err.message}`);
+    });
+    res.json({ success: true, message: "AI service wakeup triggered" });
+  })
+);
+
+generatorRouter.post(
   "/generator/assignments",
   requireAuth,
   requireActiveMembership,

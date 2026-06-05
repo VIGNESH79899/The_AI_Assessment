@@ -6,7 +6,7 @@ import { env } from "../config/env.js";
  * If the service is booting, it returns a 429 status code or a "hibernate-rate-limited" header.
  * We wait for a specified delay and retry the request up to a maximum number of times.
  */
-async function axiosRequestWithRetry(config, retries = 3, delayMs = 8000) {
+async function axiosRequestWithRetry(config, retries = 10, delayMs = 8000) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       return await axios(config);

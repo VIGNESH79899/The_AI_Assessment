@@ -253,6 +253,16 @@ export default function App() {
     }
   }, [user]);
 
+  // Trigger AI service wakeup when dashboard view becomes active or on mount (if user is authenticated)
+  useEffect(() => {
+    if (user && activeView === "dashboard") {
+      console.log("[WAKEUP] Navigation to dashboard detected. Triggering AI service wakeup...");
+      apiRequest("/api/generator/wakeup", { method: "POST" }).catch(err => {
+        console.warn("[WAKEUP] Wakeup request failed:", err);
+      });
+    }
+  }, [activeView, user]);
+
   const handleLogout = async () => {
     try {
       await apiRequest("/api/auth/logout", { method: "POST" });
