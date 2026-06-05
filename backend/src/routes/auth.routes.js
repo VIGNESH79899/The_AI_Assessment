@@ -146,6 +146,14 @@ function getRedirectUrl(req) {
     "https://assessmentmaker.vercel.app"
   ];
   
+  // Try state query parameter first (most reliable, works without cookies)
+  const state = req.query?.state;
+  if (state) {
+    if (allowedOrigins.includes(state) || state.endsWith(".vercel.app")) {
+      return state;
+    }
+  }
+
   const clientOrigin = req.cookies?.oauthClientOrigin;
   if (clientOrigin) {
     if (allowedOrigins.includes(clientOrigin) || clientOrigin.endsWith(".vercel.app")) {
@@ -178,7 +186,21 @@ authRouter.get("/google", (req, res, next) => {
     const redirectUrl = getRedirectUrl(req);
     return res.redirect(`${redirectUrl}/login?oauth=google-unconfigured`);
   }
-  passport.authenticate("google", { scope: ["profile", "email"], session: false })(req, res, next);
+
+  // Capture client origin to pass in state
+  let clientOrigin = env.clientUrl;
+  const referer = req.headers.referer;
+  if (referer) {
+    try {
+      clientOrigin = new URL(referer).origin;
+    } catch (e) {}
+  }
+
+  passport.authenticate("google", { 
+    scope: ["profile", "email"], 
+    session: false,
+    state: clientOrigin
+  })(req, res, next);
 });
 
 authRouter.get(
@@ -213,7 +235,21 @@ authRouter.get("/github", (req, res, next) => {
     const redirectUrl = getRedirectUrl(req);
     return res.redirect(`${redirectUrl}/login?oauth=github-unconfigured`);
   }
-  passport.authenticate("github", { scope: ["user:email"], session: false })(req, res, next);
+
+  // Capture client origin to pass in state
+  let clientOrigin = env.clientUrl;
+  const referer = req.headers.referer;
+  if (referer) {
+    try {
+      clientOrigin = new URL(referer).origin;
+    } catch (e) {}
+  }
+
+  passport.authenticate("github", { 
+    scope: ["user:email"], 
+    session: false,
+    state: clientOrigin
+  })(req, res, next);
 });
 
 authRouter.get(
