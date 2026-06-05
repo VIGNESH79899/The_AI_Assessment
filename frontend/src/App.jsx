@@ -1456,17 +1456,6 @@ function ProfileForm({ user, setUser, showToast }) {
           />
         </div>
 
-        {/* Avatar URL */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Avatar Image URL</label>
-          <input
-            type="url"
-            value={avatar}
-            onChange={(e) => setAvatar(e.target.value)}
-            placeholder="https://example.com/avatar.jpg"
-            className="w-full px-4 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 transition-all text-zinc-900 dark:text-zinc-100"
-          />
-        </div>
 
         {/* Authentication Provider (Read only) */}
         <div className="space-y-1.5">
