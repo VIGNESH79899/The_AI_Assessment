@@ -254,21 +254,45 @@ generatorRouter.post(
         throw new ApiError(502, "AI service did not return a download URL");
       }
 
-      doc.aiServiceUrl = aiDownloadUrl;
-      doc.status = "ready";
-      await doc.save();
       const directUrl = normalizeAiDownloadUrl(aiDownloadUrl);
       if (!directUrl) {
         throw new ApiError(502, "AI service returned an invalid download URL");
       }
 
-      console.log(`[GENERATOR] Assignment ready. Download URL: ${directUrl}`);
-      await safelyTriggerZapierDocumentEmail(req, result, "Assignment", directUrl);
+      // Fetch file buffer from AI service
+      let fileBuffer = null;
+      if (persistenceEnabled) {
+        try {
+          console.log(`[GENERATOR] Fetching generated DOCX from: ${directUrl}`);
+          const fileResponse = await axios.get(directUrl, {
+            responseType: "arraybuffer",
+            headers: { "x-internal-service-token": env.aiServiceToken }
+          });
+          fileBuffer = Buffer.from(fileResponse.data);
+        } catch (fetchError) {
+          console.error(`[GENERATOR] Failed to fetch generated DOCX from AI service: ${fetchError.message}`);
+          throw new ApiError(502, "Failed to retrieve generated document from AI service", fetchError.message);
+        }
+      }
+
+      doc.aiServiceUrl = aiDownloadUrl;
+      if (fileBuffer) {
+        doc.fileData = fileBuffer;
+      }
+      doc.status = "ready";
+      await doc.save();
+
+      const authHeader = req.headers.authorization || "";
+      const jwtToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+      const backendDownloadUrl = `${env.apiBaseUrl.replace(/\/+$/, '')}/api/generator/download/${doc._id}${jwtToken ? `?token=${jwtToken}` : ""}`;
+
+      console.log(`[GENERATOR] Assignment ready. Download URL: ${backendDownloadUrl}`);
+      await safelyTriggerZapierDocumentEmail(req, result, "Assignment", backendDownloadUrl);
       res.status(201).json({
         success: true,
         document: doc,
-        url: directUrl,
-        downloadUrl: directUrl,
+        url: backendDownloadUrl,
+        downloadUrl: backendDownloadUrl,
         sectionsCount: result.sections_count || 0
       });
     } catch (error) {
@@ -293,8 +317,18 @@ generatorRouter.get(
     if (doc.status === "processing") throw new ApiError(400, "This document is still generating. Please try again in a few seconds.");
     if (doc.status !== "ready") throw new ApiError(400, "Document is not ready for download.");
     
-    // Normalize the URL before redirecting, in case it's a relative path to the AI service
+    if (doc.fileData) {
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+      const filename = doc.documentName ? (doc.documentName.endsWith(".docx") ? doc.documentName : `${doc.documentName}.docx`) : "document.docx";
+      res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(filename)}"`);
+      return res.send(doc.fileData);
+    }
+
+    // Normalize the URL before redirecting, in case it's a relative path to the AI service (fallback for older records)
     const directUrl = normalizeAiDownloadUrl(doc.aiServiceUrl);
+    if (!directUrl) {
+      throw new ApiError(404, "Download link not found");
+    }
     res.redirect(directUrl);
   })
 );
@@ -351,21 +385,45 @@ generatorRouter.post(
         throw new ApiError(502, "AI service did not return a download URL");
       }
 
-      doc.aiServiceUrl = aiDownloadUrl;
-      doc.status = "ready";
-      await doc.save();
       const directUrl = normalizeAiDownloadUrl(aiDownloadUrl);
       if (!directUrl) {
         throw new ApiError(502, "AI service returned an invalid download URL");
       }
 
-      console.log(`[GENERATOR] Free writing ready. Download URL: ${directUrl}`);
-      await safelyTriggerZapierDocumentEmail(req, result, "Free Writing", directUrl);
+      // Fetch file buffer from AI service
+      let fileBuffer = null;
+      if (persistenceEnabled) {
+        try {
+          console.log(`[GENERATOR] Fetching generated DOCX from: ${directUrl}`);
+          const fileResponse = await axios.get(directUrl, {
+            responseType: "arraybuffer",
+            headers: { "x-internal-service-token": env.aiServiceToken }
+          });
+          fileBuffer = Buffer.from(fileResponse.data);
+        } catch (fetchError) {
+          console.error(`[GENERATOR] Failed to fetch generated DOCX from AI service: ${fetchError.message}`);
+          throw new ApiError(502, "Failed to retrieve generated document from AI service", fetchError.message);
+        }
+      }
+
+      doc.aiServiceUrl = aiDownloadUrl;
+      if (fileBuffer) {
+        doc.fileData = fileBuffer;
+      }
+      doc.status = "ready";
+      await doc.save();
+
+      const authHeader = req.headers.authorization || "";
+      const jwtToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+      const backendDownloadUrl = `${env.apiBaseUrl.replace(/\/+$/, '')}/api/generator/download/${doc._id}${jwtToken ? `?token=${jwtToken}` : ""}`;
+
+      console.log(`[GENERATOR] Free writing ready. Download URL: ${backendDownloadUrl}`);
+      await safelyTriggerZapierDocumentEmail(req, result, "Free Writing", backendDownloadUrl);
       res.status(201).json({
         success: true,
         document: doc,
-        url: directUrl,
-        downloadUrl: directUrl,
+        url: backendDownloadUrl,
+        downloadUrl: backendDownloadUrl,
         sectionsCount: result.sections_count || 0
       });
     } catch (error) {
@@ -447,21 +505,45 @@ generatorRouter.post(
         throw new ApiError(502, "AI service did not return a download URL");
       }
 
-      doc.aiServiceUrl = aiDownloadUrl;
-      doc.status = "ready";
-      await doc.save();
       const directUrl = normalizeAiDownloadUrl(aiDownloadUrl);
       if (!directUrl) {
         throw new ApiError(502, "AI service returned an invalid download URL");
       }
 
-      console.log(`[GENERATOR] Literature survey ready. Download URL: ${directUrl}`);
-      await safelyTriggerZapierDocumentEmail(req, result, "Literature Survey", directUrl);
+      // Fetch file buffer from AI service
+      let fileBuffer = null;
+      if (persistenceEnabled) {
+        try {
+          console.log(`[GENERATOR] Fetching generated DOCX from: ${directUrl}`);
+          const fileResponse = await axios.get(directUrl, {
+            responseType: "arraybuffer",
+            headers: { "x-internal-service-token": env.aiServiceToken }
+          });
+          fileBuffer = Buffer.from(fileResponse.data);
+        } catch (fetchError) {
+          console.error(`[GENERATOR] Failed to fetch generated DOCX from AI service: ${fetchError.message}`);
+          throw new ApiError(502, "Failed to retrieve generated document from AI service", fetchError.message);
+        }
+      }
+
+      doc.aiServiceUrl = aiDownloadUrl;
+      if (fileBuffer) {
+        doc.fileData = fileBuffer;
+      }
+      doc.status = "ready";
+      await doc.save();
+
+      const authHeader = req.headers.authorization || "";
+      const jwtToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+      const backendDownloadUrl = `${env.apiBaseUrl.replace(/\/+$/, '')}/api/generator/download/${doc._id}${jwtToken ? `?token=${jwtToken}` : ""}`;
+
+      console.log(`[GENERATOR] Literature survey ready. Download URL: ${backendDownloadUrl}`);
+      await safelyTriggerZapierDocumentEmail(req, result, "Literature Survey", backendDownloadUrl);
       res.status(201).json({
         success: true,
         document: doc,
-        url: directUrl,
-        downloadUrl: directUrl,
+        url: backendDownloadUrl,
+        downloadUrl: backendDownloadUrl,
         sectionsCount: result.sections_count || 0
       });
     } catch (error) {

@@ -10,7 +10,8 @@ const generatedDocumentSchema = new mongoose.Schema(
     status: { type: String, enum: ["processing", "ready", "failed"], default: "processing" },
     error: String,
     assessmentType: { type: String, default: "reflective_journal" },
-    assessmentMetadata: { type: mongoose.Schema.Types.Mixed, default: {} }
+    assessmentMetadata: { type: mongoose.Schema.Types.Mixed, default: {} },
+    fileData: Buffer
   },
   { timestamps: true }
 );
