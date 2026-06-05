@@ -140,9 +140,43 @@ authRouter.post(
 
 authRouter.get("/me", requireAuth, (req, res) => res.json({ user: sanitizeUser(req.user) }));
 
+function getRedirectUrl(req) {
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "https://assessmentmaker.vercel.app"
+  ];
+  
+  const clientOrigin = req.cookies?.oauthClientOrigin;
+  if (clientOrigin) {
+    if (allowedOrigins.includes(clientOrigin) || clientOrigin.endsWith(".vercel.app")) {
+      return clientOrigin;
+    }
+  }
+  return env.clientUrl;
+}
+
+function captureClientOrigin(req, res) {
+  const referer = req.headers.referer;
+  if (referer) {
+    try {
+      const parsed = new URL(referer);
+      res.cookie("oauthClientOrigin", parsed.origin, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        maxAge: 5 * 60 * 1000 // 5 minutes
+      });
+    } catch (e) {
+      // Ignore parsing errors
+    }
+  }
+}
+
 authRouter.get("/google", (req, res, next) => {
+  captureClientOrigin(req, res);
   if (!env.googleClientId || !env.googleClientSecret) {
-    return res.redirect(`${env.clientUrl}/login?oauth=google-unconfigured`);
+    const redirectUrl = getRedirectUrl(req);
+    return res.redirect(`${redirectUrl}/login?oauth=google-unconfigured`);
   }
   passport.authenticate("google", { scope: ["profile", "email"], session: false })(req, res, next);
 });
@@ -151,19 +185,33 @@ authRouter.get(
   "/google/callback",
   (req, res, next) => {
     if (!env.googleClientId || !env.googleClientSecret) {
-      return res.redirect(`${env.clientUrl}/login?oauth=google-unconfigured`);
+      const redirectUrl = getRedirectUrl(req);
+      return res.redirect(`${redirectUrl}/login?oauth=google-unconfigured`);
     }
-    passport.authenticate("google", { session: false, failureRedirect: `${env.clientUrl}/login?error=oauth` })(req, res, next);
-  },
-  (req, res) => {
-    const { accessToken } = issueAuth(res, req.user);
-    res.redirect(`${env.clientUrl}/auth/callback?token=${accessToken}`);
+
+    passport.authenticate("google", { session: false }, (err, user) => {
+      const redirectUrl = getRedirectUrl(req);
+      res.clearCookie("oauthClientOrigin", {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax"
+      });
+
+      if (err || !user) {
+        return res.redirect(`${redirectUrl}/login?error=oauth`);
+      }
+
+      const { accessToken } = issueAuth(res, user);
+      res.redirect(`${redirectUrl}/auth/callback?token=${accessToken}`);
+    })(req, res, next);
   }
 );
 
 authRouter.get("/github", (req, res, next) => {
+  captureClientOrigin(req, res);
   if (!env.githubClientId || !env.githubClientSecret) {
-    return res.redirect(`${env.clientUrl}/login?oauth=github-unconfigured`);
+    const redirectUrl = getRedirectUrl(req);
+    return res.redirect(`${redirectUrl}/login?oauth=github-unconfigured`);
   }
   passport.authenticate("github", { scope: ["user:email"], session: false })(req, res, next);
 });
@@ -172,13 +220,25 @@ authRouter.get(
   "/github/callback",
   (req, res, next) => {
     if (!env.githubClientId || !env.githubClientSecret) {
-      return res.redirect(`${env.clientUrl}/login?oauth=github-unconfigured`);
+      const redirectUrl = getRedirectUrl(req);
+      return res.redirect(`${redirectUrl}/login?oauth=github-unconfigured`);
     }
-    passport.authenticate("github", { session: false, failureRedirect: `${env.clientUrl}/login?error=oauth` })(req, res, next);
-  },
-  (req, res) => {
-    const { accessToken } = issueAuth(res, req.user);
-    res.redirect(`${env.clientUrl}/auth/callback?token=${accessToken}`);
+
+    passport.authenticate("github", { session: false }, (err, user) => {
+      const redirectUrl = getRedirectUrl(req);
+      res.clearCookie("oauthClientOrigin", {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax"
+      });
+
+      if (err || !user) {
+        return res.redirect(`${redirectUrl}/login?error=oauth`);
+      }
+
+      const { accessToken } = issueAuth(res, user);
+      res.redirect(`${redirectUrl}/auth/callback?token=${accessToken}`);
+    })(req, res, next);
   }
 );
 
