@@ -205,59 +205,6 @@ async function safelyTriggerZapierDocumentEmail(req, result, documentType, downl
   }
 }
 
-generatorRouter.get(
-  "/generator/debug-env-info-xyz",
-  asyncHandler(async (req, res) => {
-    const debugInfo = {
-      aiServiceUrl: env.aiServiceUrl,
-      hasServiceToken: !!env.aiServiceToken,
-      nodeEnv: env.nodeEnv,
-      apiBaseUrl: env.apiBaseUrl,
-      clientUrl: env.clientUrl,
-    };
-    
-    try {
-      const healthResponse = await axios.get(`${env.aiServiceUrl.replace(/\/+$/, '')}/health`, {
-        headers: { "x-internal-service-token": env.aiServiceToken || "" },
-        timeout: 5000
-      });
-      debugInfo.healthResponse = {
-        status: healthResponse.status,
-        headers: healthResponse.headers,
-        data: healthResponse.data
-      };
-    } catch (err) {
-      debugInfo.healthError = {
-        message: err.message,
-        status: err.response?.status,
-        headers: err.response?.headers,
-        data: err.response?.data
-      };
-    }
-
-    try {
-      const rootResponse = await axios.get(env.aiServiceUrl, {
-        headers: { "x-internal-service-token": env.aiServiceToken || "" },
-        timeout: 5000
-      });
-      debugInfo.rootResponse = {
-        status: rootResponse.status,
-        headers: rootResponse.headers,
-        data: rootResponse.data
-      };
-    } catch (err) {
-      debugInfo.rootError = {
-        message: err.message,
-        status: err.response?.status,
-        headers: err.response?.headers,
-        data: err.response?.data
-      };
-    }
-
-    res.json(debugInfo);
-  })
-);
-
 generatorRouter.post(
   "/generator/assignments",
   requireAuth,
