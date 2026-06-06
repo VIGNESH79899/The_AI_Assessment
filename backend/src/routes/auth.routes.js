@@ -11,6 +11,7 @@ import { requireAuth } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
 import { env, isProduction } from "../config/env.js";
 import { membershipEmail, sendEmail } from "../services/emailService.js";
+import { GeneratedDocument } from "../models/GeneratedDocument.js";
 
 export const authRouter = express.Router();
 
@@ -21,11 +22,55 @@ const cookieOptions = {
   maxAge: 30 * 24 * 60 * 60 * 1000
 };
 
-function issueAuth(res, user) {
+async function getSanitizedUserWithTrial(user) {
+  const userObj = sanitizeUser(user);
+  
+  if (mongoose.connection.readyState !== 1 || user._id === "demo-user") {
+    userObj.trialUsage = {
+      reflective_journal: false,
+      free_writing: false,
+      literature_survey: false
+    };
+    return userObj;
+  }
+
+  try {
+    const documentCounts = await GeneratedDocument.aggregate([
+      { $match: { user: user._id, status: { $ne: "failed" } } },
+      { $group: { _id: "$assessmentType", count: { $sum: 1 } } }
+    ]);
+
+    const trialUsage = {
+      reflective_journal: false,
+      free_writing: false,
+      literature_survey: false
+    };
+
+    documentCounts.forEach((item) => {
+      const type = item._id || "reflective_journal";
+      if (type in trialUsage) {
+        trialUsage[type] = item.count > 0;
+      }
+    });
+
+    userObj.trialUsage = trialUsage;
+  } catch (err) {
+    console.error("Failed to aggregate trial usage:", err);
+    userObj.trialUsage = {
+      reflective_journal: false,
+      free_writing: false,
+      literature_survey: false
+    };
+  }
+
+  return userObj;
+}
+
+async function issueAuth(res, user) {
   const accessToken = signAccessToken(user);
   const refreshToken = signRefreshToken(user);
   res.cookie("refreshToken", refreshToken, cookieOptions);
-  return { accessToken, user: sanitizeUser(user) };
+  return { accessToken, user: await getSanitizedUserWithTrial(user) };
 }
 
 function demoUser(email = "demo@example.com", name = "Demo Premium Member") {
@@ -79,7 +124,7 @@ authRouter.post(
   asyncHandler(async (req, res) => {
     const { name, email, password, referralCode } = req.validated.body;
     if (mongoose.connection.readyState !== 1) {
-      return res.status(201).json(issueAuth(res, demoUser(email, name)));
+      return res.status(201).json(await issueAuth(res, demoUser(email, name)));
     }
 
     const existing = await User.findOne({ email });
@@ -95,7 +140,7 @@ authRouter.post(
     await user.save();
     await sendEmail(membershipEmail("welcome", user));
 
-    res.status(201).json(issueAuth(res, user));
+    res.status(201).json(await issueAuth(res, user));
   })
 );
 
@@ -105,14 +150,14 @@ authRouter.post(
   asyncHandler(async (req, res) => {
     const { email, password } = req.validated.body;
     if (mongoose.connection.readyState !== 1) {
-      return res.json(issueAuth(res, demoUser(email)));
+      return res.json(await issueAuth(res, demoUser(email)));
     }
 
     const user = await User.findOne({ email });
     if (!user || !(await user.comparePassword(password))) throw new ApiError(401, "Invalid email or password");
     user.lastLoginAt = new Date();
     await user.save();
-    res.json(issueAuth(res, user));
+    res.json(await issueAuth(res, user));
   })
 );
 
@@ -124,7 +169,7 @@ authRouter.post(
     const decoded = verifyRefreshToken(token);
     const user = await User.findById(decoded.sub);
     if (!user || user.tokenVersion !== decoded.tokenVersion) throw new ApiError(401, "Invalid refresh token");
-    res.json(issueAuth(res, user));
+    res.json(await issueAuth(res, user));
   })
 );
 
@@ -138,7 +183,7 @@ authRouter.post(
   })
 );
 
-authRouter.get("/me", requireAuth, (req, res) => res.json({ user: sanitizeUser(req.user) }));
+authRouter.get("/me", requireAuth, asyncHandler(async (req, res) => res.json({ user: await getSanitizedUserWithTrial(req.user) })));
 
 function getRedirectUrl(req) {
   const allowedOrigins = [
@@ -211,7 +256,7 @@ authRouter.get(
       return res.redirect(`${redirectUrl}/login?oauth=google-unconfigured`);
     }
 
-    passport.authenticate("google", { session: false }, (err, user) => {
+    passport.authenticate("google", { session: false }, async (err, user) => {
       const redirectUrl = getRedirectUrl(req);
       res.clearCookie("oauthClientOrigin", {
         httpOnly: true,
@@ -223,7 +268,7 @@ authRouter.get(
         return res.redirect(`${redirectUrl}/login?error=oauth`);
       }
 
-      const { accessToken } = issueAuth(res, user);
+      const { accessToken } = await issueAuth(res, user);
       res.redirect(`${redirectUrl}/auth/callback?token=${accessToken}`);
     })(req, res, next);
   }
@@ -260,7 +305,7 @@ authRouter.get(
       return res.redirect(`${redirectUrl}/login?oauth=github-unconfigured`);
     }
 
-    passport.authenticate("github", { session: false }, (err, user) => {
+    passport.authenticate("github", { session: false }, async (err, user) => {
       const redirectUrl = getRedirectUrl(req);
       res.clearCookie("oauthClientOrigin", {
         httpOnly: true,
@@ -272,7 +317,7 @@ authRouter.get(
         return res.redirect(`${redirectUrl}/login?error=oauth`);
       }
 
-      const { accessToken } = issueAuth(res, user);
+      const { accessToken } = await issueAuth(res, user);
       res.redirect(`${redirectUrl}/auth/callback?token=${accessToken}`);
     })(req, res, next);
   }
@@ -299,6 +344,6 @@ authRouter.put(
     }
     
     await req.user.save();
-    res.json({ ok: true, user: sanitizeUser(req.user) });
+    res.json({ ok: true, user: await getSanitizedUserWithTrial(req.user) });
   })
 );

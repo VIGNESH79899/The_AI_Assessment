@@ -3,7 +3,7 @@ import { Server } from "socket.io";
 import { createApp } from "./app.js";
 import { connectDatabase } from "./config/db.js";
 import { env } from "./config/env.js";
-import { seedDefaultPlans } from "./services/seedPlans.js";
+import { seedDefaultPlans, seedDefaultCoupons } from "./services/seedPlans.js";
 import { verifyAccessToken } from "./utils/tokens.js";
 
 const app = createApp();
@@ -37,6 +37,7 @@ io.on("connection", (socket) => {
 const connection = await connectDatabase();
 if (connection) {
   await seedDefaultPlans();
+  await seedDefaultCoupons();
 }
 
 server.listen(env.port, () => {

@@ -56,7 +56,7 @@ export function requireRole(...roles) {
   };
 }
 
-export function requireActiveMembership(req, _res, next) {
+export async function requireActiveMembership(req, _res, next) {
   if (process.env.FREE_MODE === "true") {
     return next();
   }
@@ -65,8 +65,38 @@ export function requireActiveMembership(req, _res, next) {
   const now = new Date();
   const active = user?.subscription?.status === "active" && user.subscription.currentPeriodEnd > now;
   const trial = user?.subscription?.status === "trialing" && user.subscription.trialEndsAt > now;
-  if (!active && !trial && user?.role !== "admin") {
-    return next(new ApiError(402, "Active membership or trial required"));
+  
+  if (active || trial || user?.role === "admin") {
+    return next();
   }
-  next();
+
+  try {
+    let type = "reflective_journal";
+    if (req.path.includes("free-writing")) {
+      type = "free_writing";
+    } else if (req.path.includes("literature-survey") || req.path.includes("literature-search")) {
+      type = "literature_survey";
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      return next();
+    }
+
+    const { GeneratedDocument } = await import("../models/GeneratedDocument.js");
+    const count = await GeneratedDocument.countDocuments({
+      user: user._id,
+      assessmentType: type,
+      status: { $ne: "failed" }
+    });
+
+    if (count === 0) {
+      return next();
+    }
+
+    return next(
+      new ApiError(402, `Free trial for ${type.replace("_", " ")} already used. Please subscribe to continue.`)
+    );
+  } catch (err) {
+    return next(err);
+  }
 }

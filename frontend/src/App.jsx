@@ -23,7 +23,10 @@ import {
   GraduationCap,
   BookOpen,
   Layers,
-  Sparkle
+  Sparkle,
+  Check,
+  Crown,
+  CreditCard
 } from "lucide-react";
 import { useTheme } from "./hooks/useTheme.js";
 import { AssessmentSwitcher } from "./components/assessments/AssessmentSwitcher.jsx";
@@ -119,6 +122,14 @@ export default function App() {
   const [deleting, setDeleting] = useState(false);
   const [isAiServiceReady, setIsAiServiceReady] = useState(false);
   const [isCheckingReady, setIsCheckingReady] = useState(true);
+
+  // Billing and Subscription state
+  const [couponCode, setCouponCode] = useState("");
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [checkingOutPlan, setCheckingOutPlan] = useState(null);
+  const [invoices, setInvoices] = useState([]);
+  const [loadingInvoices, setLoadingInvoices] = useState(false);
   
   const [formData, setFormData] = useState({
     student_name: "",
@@ -299,6 +310,25 @@ export default function App() {
         clearInterval(pollInterval);
       }
     };
+  }, [activeView, user]);
+
+  // Fetch invoices when billing view is selected
+  useEffect(() => {
+    if (!user || activeView !== "billing") return;
+
+    const fetchInvoices = async () => {
+      setLoadingInvoices(true);
+      try {
+        const data = await apiRequest("/api/invoices");
+        setInvoices(data.invoices || []);
+      } catch (err) {
+        console.error("Failed to fetch invoices:", err);
+      } finally {
+        setLoadingInvoices(false);
+      }
+    };
+
+    fetchInvoices();
   }, [activeView, user]);
 
   const handleLogout = async () => {
@@ -610,6 +640,16 @@ export default function App() {
               }`}
             >
               Profile
+            </button>
+            <button
+              onClick={() => setActiveView("billing")}
+              className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all ${
+                activeView === "billing"
+                  ? "bg-white dark:bg-zinc-800 shadow-sm text-zinc-900 dark:text-white"
+                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              }`}
+            >
+              Subscription
             </button>
           </nav>
         )}
@@ -928,12 +968,20 @@ export default function App() {
               />
 
               <div className="space-y-2">
-                <h1 className="text-2xl font-extrabold tracking-tight">
-                  {assessmentType === "free_writing" 
-                    ? "Free Writing Assessment Studio" 
-                    : assessmentType === "literature_survey"
-                    ? "AI Literature Survey Studio"
-                    : "AI Reflective Journal Studio"}
+                <h1 className="text-2xl font-extrabold tracking-tight flex items-center gap-3">
+                  <span>
+                    {assessmentType === "free_writing" 
+                      ? "Free Writing Assessment Studio" 
+                      : assessmentType === "literature_survey"
+                      ? "AI Literature Survey Studio"
+                      : "AI Reflective Journal Studio"}
+                  </span>
+                  {user?.subscription?.status !== "active" && !user?.trialUsage?.[assessmentType] && (
+                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950/20 border border-emerald-250/30 dark:border-emerald-900/40 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 select-none animate-pulse">
+                      <Sparkles className="w-3 h-3" />
+                      Free Trial Active
+                    </span>
+                  )}
                 </h1>
                 <p className="text-sm text-zinc-555 dark:text-zinc-400 leading-relaxed">
                   {assessmentType === "free_writing"
@@ -944,36 +992,67 @@ export default function App() {
                 </p>
               </div>
 
-              {assessmentType === "free_writing" ? (
-                <FreeWritingForm
-                  formData={formData}
-                  setFormData={setFormData}
-                  onSubmit={handleGenerate}
-                  generating={generating}
-                  isAiServiceReady={isAiServiceReady}
-                  isCheckingReady={isCheckingReady}
-                />
-              ) : assessmentType === "literature_survey" ? (
-                <LiteratureSurveyForm
-                  formData={formData}
-                  setFormData={setFormData}
-                  onSubmit={handleGenerate}
-                  generating={generating}
-                  selectedPapers={selectedPapers}
-                  setSelectedPapers={setSelectedPapers}
-                  isAiServiceReady={isAiServiceReady}
-                  isCheckingReady={isCheckingReady}
-                />
-              ) : (
-                <ReflectiveJournalForm
-                  formData={formData}
-                  setFormData={setFormData}
-                  onSubmit={handleGenerate}
-                  generating={generating}
-                  isAiServiceReady={isAiServiceReady}
-                  isCheckingReady={isCheckingReady}
-                />
-              )}
+              <div className="relative">
+                {user?.subscription?.status !== "active" && user?.trialUsage?.[assessmentType] && (
+                  <div className="absolute inset-0 z-20 backdrop-blur-[6px] bg-zinc-50/50 dark:bg-zinc-950/55 rounded-2xl border border-zinc-200/60 dark:border-zinc-800/80 flex flex-col items-center justify-center text-center p-6 space-y-5">
+                    <div className="w-14 h-14 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200/50 dark:border-amber-900/40 flex items-center justify-center shadow-sm">
+                      <Crown className="w-6 h-6 text-amber-500 animate-pulse" />
+                    </div>
+                    <div className="space-y-2 max-w-sm">
+                      <h3 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">
+                        Unlock Premium Access
+                      </h3>
+                      <p className="text-xs text-zinc-550 dark:text-zinc-400 leading-relaxed">
+                        You have already used your 1-time free trial for generating a{" "}
+                        <span className="font-semibold text-zinc-850 dark:text-zinc-200">
+                          {assessmentType.replace("_", " ")}
+                        </span>
+                        . Subscribe to a premium membership to unlock unlimited generations.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setActiveView("billing")}
+                      className="px-6 py-2.5 bg-zinc-900 dark:bg-zinc-100 hover:opacity-90 text-white dark:text-zinc-950 font-semibold rounded-xl text-xs shadow-sm transition-all flex items-center gap-1.5"
+                    >
+                      <Crown className="w-3.5 h-3.5" />
+                      <span>View Subscription Plans</span>
+                    </button>
+                  </div>
+                )}
+
+                <div className={user?.subscription?.status !== "active" && user?.trialUsage?.[assessmentType] ? "pointer-events-none opacity-30 select-none" : ""}>
+                  {assessmentType === "free_writing" ? (
+                    <FreeWritingForm
+                      formData={formData}
+                      setFormData={setFormData}
+                      onSubmit={handleGenerate}
+                      generating={generating}
+                      isAiServiceReady={isAiServiceReady}
+                      isCheckingReady={isCheckingReady}
+                    />
+                  ) : assessmentType === "literature_survey" ? (
+                    <LiteratureSurveyForm
+                      formData={formData}
+                      setFormData={setFormData}
+                      onSubmit={handleGenerate}
+                      generating={generating}
+                      selectedPapers={selectedPapers}
+                      setSelectedPapers={setSelectedPapers}
+                      isAiServiceReady={isAiServiceReady}
+                      isCheckingReady={isCheckingReady}
+                    />
+                  ) : (
+                    <ReflectiveJournalForm
+                      formData={formData}
+                      setFormData={setFormData}
+                      onSubmit={handleGenerate}
+                      generating={generating}
+                      isAiServiceReady={isAiServiceReady}
+                      isCheckingReady={isCheckingReady}
+                    />
+                  )}
+                </div>
+              </div>
             </motion.div>
           )}
 
@@ -1149,6 +1228,429 @@ export default function App() {
             </motion.div>
           )}
 
+          {/* ====================================================
+              BILLING (SUBSCRIPTION) PAGE
+              ==================================================== */}
+          {activeView === "billing" && (
+            <motion.div
+              key="billing"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="space-y-8 max-w-4xl mx-auto px-4"
+            >
+              <div className="space-y-1">
+                <h1 className="text-2xl font-extrabold tracking-tight">Subscription Command Center</h1>
+                <p className="text-sm text-zinc-555 dark:text-zinc-400">
+                  Manage your subscription status, trials, and billing invoices.
+                </p>
+              </div>
+
+              {/* Current Subscription Status */}
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-6">
+                <h2 className="text-lg font-bold flex items-center gap-2">
+                  <Crown className="w-5 h-5 text-amber-500" />
+                  <span>Current Membership Plan</span>
+                </h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-xs text-zinc-400 font-semibold uppercase tracking-wider block">Status</span>
+                      <strong className={`text-base font-bold capitalize ${
+                        user?.subscription?.status === "active" ? "text-emerald-600 dark:text-emerald-450" : "text-amber-600 dark:text-amber-450"
+                      }`}>
+                        {user?.subscription?.status === "active" ? "Premium Active Member" : "Free Trial Mode"}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span className="text-xs text-zinc-400 font-semibold uppercase tracking-wider block">Plan Details</span>
+                      <strong className="text-sm text-zinc-800 dark:text-zinc-200 block capitalize">
+                        {user?.subscription?.planKey ? `${user.subscription.planKey.replace("-", " ")} Membership` : "Free Trial Plan"}
+                      </strong>
+                    </div>
+
+                    {user?.subscription?.currentPeriodEnd && (
+                      <div>
+                        <span className="text-xs text-zinc-400 font-semibold uppercase tracking-wider block">Current Period End</span>
+                        <strong className="text-sm text-zinc-800 dark:text-zinc-200 block">
+                          {new Date(user.subscription.currentPeriodEnd).toLocaleDateString()}
+                        </strong>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Free Trial usage flags */}
+                  <div className="p-4 bg-zinc-50/50 dark:bg-zinc-950/40 border border-zinc-200/50 dark:border-zinc-800/80 rounded-xl space-y-3">
+                    <span className="text-xs text-zinc-450 font-semibold uppercase tracking-wider block">Trial Document Credits</span>
+                    
+                    <div className="space-y-2.5">
+                      {[
+                        { label: "Reflective Journal", key: "reflective_journal" },
+                        { label: "Free Writing", key: "free_writing" },
+                        { label: "Literature Survey", key: "literature_survey" }
+                      ].map((item) => {
+                        const used = user?.trialUsage?.[item.key];
+                        return (
+                          <div key={item.key} className="flex items-center justify-between text-xs font-semibold">
+                            <span className="text-zinc-700 dark:text-zinc-300">{item.label}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+                              used 
+                                ? "bg-rose-50 text-rose-600 border border-rose-100 dark:bg-rose-950/30 dark:text-rose-450 dark:border-rose-900/40" 
+                                : "bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-450 dark:border-emerald-900/40"
+                            }`}>
+                              {used ? "Used" : "1 Available"}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {user?.subscription?.status === "active" && (
+                  <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 border-t border-zinc-100 dark:border-zinc-800/50">
+                    {/* Auto-renew Switch */}
+                    <div className="flex items-center gap-3 mr-auto">
+                      <span className="text-sm text-zinc-700 dark:text-zinc-300 font-medium">Auto-Renewal:</span>
+                      <button
+                        onClick={async () => {
+                          try {
+                            const newStatus = !user.subscription.autoRenew;
+                            const res = await apiRequest("/api/subscriptions/auto-renew", {
+                              method: "PATCH",
+                              body: JSON.stringify({ autoRenew: newStatus })
+                            });
+                            if (res.subscription) {
+                              setUser({ ...user, subscription: { ...user.subscription, autoRenew: res.subscription.autoRenew } });
+                              showToast(`Auto-renewal ${res.subscription.autoRenew ? "enabled" : "disabled"}`, "success");
+                            }
+                          } catch (err) {
+                            showToast(err.message, "error");
+                          }
+                        }}
+                        className={`switch ${user?.subscription?.autoRenew ? "on" : ""}`}
+                        aria-label="Toggle auto renew"
+                      >
+                        <span />
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={async () => {
+                        if (!confirm("Are you sure you want to cancel your subscription? You will retain access until the end of your billing cycle.")) return;
+                        try {
+                          const res = await apiRequest("/api/subscriptions/cancel", { method: "POST" });
+                          if (res.subscription) {
+                            setUser({ ...user, subscription: res.subscription });
+                            showToast("Subscription cancelled successfully", "success");
+                          }
+                        } catch (err) {
+                          showToast(err.message, "error");
+                        }
+                      }}
+                      className="px-4 py-2 border border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-500 rounded-xl text-xs font-semibold transition-all"
+                    >
+                      Cancel Membership
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Pricing Cards (if not active, or they want to choose a plan) */}
+              <div className="space-y-6">
+                <div className="space-y-1">
+                  <h2 className="text-lg font-bold">Premium Subscription Memberships</h2>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-450 font-medium">Choose a membership plan to unlock unlimited document generation and extra features.</p>
+                </div>
+
+                {/* Coupon Code Input */}
+                <div className="flex items-center gap-3 max-w-sm">
+                  <input
+                    type="text"
+                    placeholder="ENTER COUPON CODE"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    disabled={applyingCoupon}
+                    className="px-4 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500/80 text-zinc-900 dark:text-zinc-100 uppercase"
+                  />
+                  <button
+                    onClick={async () => {
+                      if (!couponCode.trim()) return;
+                      setApplyingCoupon(true);
+                      try {
+                        const res = await apiRequest(`/api/subscriptions/coupons/${couponCode.trim()}`);
+                        if (res.coupon) {
+                          setAppliedCoupon(res.coupon);
+                          showToast(`Coupon applied! ${
+                            res.coupon.percentOff 
+                              ? `${res.coupon.percentOff}% Off` 
+                              : `INR ${res.coupon.amountOffInr} Off`
+                          }`, "success");
+                        }
+                      } catch (err) {
+                        showToast(err.message || "Invalid coupon", "error");
+                        setAppliedCoupon(null);
+                      } finally {
+                        setApplyingCoupon(false);
+                      }
+                    }}
+                    disabled={applyingCoupon || !couponCode.trim()}
+                    className="px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 font-semibold rounded-xl text-xs shadow-sm transition-all flex-shrink-0 disabled:opacity-50"
+                  >
+                    {applyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : "Apply"}
+                  </button>
+                  {appliedCoupon && (
+                    <button
+                      onClick={() => {
+                        setAppliedCoupon(null);
+                        setCouponCode("");
+                        showToast("Coupon removed", "info");
+                      }}
+                      className="text-xs text-zinc-400 hover:text-rose-500 font-semibold"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {[
+                    {
+                      key: "quarterly",
+                      name: "3-Month Membership",
+                      price: 399,
+                      cadence: "3 months",
+                      desc: "Full premium access for 3 months",
+                      features: ["Unlimited document generation", "Premium AI generator", "Invoice downloads", "Referral rewards", "Priority generation"]
+                    },
+                    {
+                      key: "half-yearly",
+                      name: "6-Month Membership",
+                      price: 799,
+                      cadence: "6 months",
+                      desc: "Full premium access for 6 months",
+                      popular: true,
+                      features: ["Unlimited document generation", "Premium AI generator", "Advanced analytics", "Priority support", "Invoice downloads"]
+                    },
+                    {
+                      key: "yearly",
+                      name: "1-Year Membership",
+                      price: 1399,
+                      cadence: "year",
+                      desc: "Full premium access for 1 year",
+                      features: ["Unlimited document generation", "Premium AI generator", "Admin exports", "Concierge onboarding", "Priority support"]
+                    }
+                  ].map((plan) => {
+                    const discount = appliedCoupon 
+                      ? (appliedCoupon.percentOff 
+                          ? Math.round(plan.price * (appliedCoupon.percentOff / 100)) 
+                          : (appliedCoupon.amountOffInr || 0))
+                      : 0;
+                    const finalPrice = Math.max(0, plan.price - discount);
+                    const isCurrentPlan = user?.subscription?.status === "active" && user.subscription.planKey === plan.key;
+
+                    return (
+                      <div
+                        key={plan.key}
+                        className={`pricing-card border relative flex flex-col p-5 bg-white dark:bg-zinc-900/45 rounded-2xl shadow-sm ${
+                          plan.popular ? "border-amber-400 ring-2 ring-amber-400/10" : "border-zinc-200 dark:border-zinc-800"
+                        } space-y-4 flex flex-col justify-between`}
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-850 text-zinc-500">
+                              {plan.key}
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              {plan.popular && (
+                                <span className="text-[10px] font-extrabold uppercase bg-amber-400 text-zinc-950 px-2 py-0.5 rounded-full">
+                                  Popular
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <h3 className="text-sm font-bold text-zinc-900 dark:text-white">{plan.name}</h3>
+                            <p className="text-[11px] text-zinc-400 font-medium">{plan.desc}</p>
+                          </div>
+
+                          <div className="price flex items-baseline gap-1.5 whitespace-nowrap">
+                            {discount > 0 && (
+                              <span className="text-xs text-zinc-400 line-through font-semibold mr-1">
+                                INR {plan.price}
+                              </span>
+                            )}
+                            <strong className="text-2xl font-black text-zinc-900 dark:text-white">INR {finalPrice}</strong>
+                            <span className="text-xs text-zinc-400">/{plan.cadence}</span>
+                          </div>
+
+                          <ul className="text-xs text-zinc-500 space-y-2 border-t border-zinc-105 dark:border-zinc-800 pt-3 pl-0 list-none">
+                            {plan.features.map((feat) => (
+                              <li key={feat} className="flex items-start gap-1.5 leading-relaxed">
+                                <Check className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                                <span>{feat}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <button
+                          onClick={async () => {
+                            if (isCurrentPlan) return;
+                            setCheckingOutPlan(plan.key);
+                            try {
+                              const checkoutRes = await apiRequest("/api/subscriptions/checkout", {
+                                method: "POST",
+                                body: JSON.stringify({
+                                  planKey: plan.key,
+                                  couponCode: appliedCoupon?.code
+                                })
+                              });
+
+                              const { checkout } = checkoutRes;
+
+                              if (checkout.demo) {
+                                // Simulate demo checkout verify
+                                showToast("Simulating Demo Checkout...", "info");
+                                const verifyRes = await apiRequest("/api/subscriptions/verify", {
+                                  method: "POST",
+                                  body: JSON.stringify({
+                                    planKey: plan.key,
+                                    razorpay_subscription_id: checkout.subscriptionId
+                                  })
+                                });
+                                if (verifyRes.subscription) {
+                                  setUser(verifyRes.user);
+                                  showToast("Demo Subscription successful!", "success");
+                                  setActiveView("dashboard");
+                                }
+                              } else {
+                                // Open Razorpay Checkout modal
+                                const options = {
+                                  key: checkout.key,
+                                  name: "Assessment Maker Premium",
+                                  description: `${plan.name} Subscription`,
+                                  handler: async function (response) {
+                                    showToast("Verifying signature...", "info");
+                                    const verifyRes = await apiRequest("/api/subscriptions/verify", {
+                                      method: "POST",
+                                      body: JSON.stringify({
+                                        planKey: plan.key,
+                                        razorpay_subscription_id: response.razorpay_subscription_id || "",
+                                        razorpay_order_id: response.razorpay_order_id || "",
+                                        razorpay_payment_id: response.razorpay_payment_id || "",
+                                        razorpay_signature: response.razorpay_signature || ""
+                                      })
+                                    });
+                                    if (verifyRes.subscription) {
+                                      setUser(verifyRes.user);
+                                      showToast("Payment successful! Membership active.", "success");
+                                      setActiveView("dashboard");
+                                    }
+                                  },
+                                  prefill: {
+                                    name: user.name,
+                                    email: user.email
+                                  },
+                                  theme: {
+                                    color: "#18181b"
+                                  }
+                                };
+
+                                if (checkout.subscriptionId) {
+                                  options.subscription_id = checkout.subscriptionId;
+                                } else if (checkout.orderId) {
+                                  options.order_id = checkout.orderId;
+                                }
+
+                                const rzp = new window.Razorpay(options);
+                                rzp.open();
+                              }
+                            } catch (err) {
+                              showToast(err.message || "Checkout failed", "error");
+                            } finally {
+                              setCheckingOutPlan(null);
+                            }
+                          }}
+                          disabled={checkingOutPlan !== null || isCurrentPlan}
+                          className={`w-full py-2 bg-zinc-950 dark:bg-zinc-100 hover:opacity-90 text-white dark:text-zinc-950 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 ${
+                            isCurrentPlan ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
+                        >
+                          {checkingOutPlan === plan.key ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <span>{isCurrentPlan ? "Current Plan" : "Choose Plan"}</span>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Invoices panel */}
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <h2 className="text-lg font-bold">Billing Invoices</h2>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-450 font-medium">Download your past payment transactions invoices.</p>
+                </div>
+                
+                {loadingInvoices ? (
+                  <div className="h-24 w-full border border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-100 dark:bg-zinc-900 animate-pulse"></div>
+                ) : invoices.length === 0 ? (
+                  <div className="p-6 text-center border border-zinc-200/65 dark:border-zinc-800 rounded-2xl text-xs text-zinc-500 font-semibold bg-white dark:bg-zinc-900/35">
+                    No billing history or invoices found.
+                  </div>
+                ) : (
+                  <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse text-left text-xs font-semibold text-zinc-500">
+                        <thead>
+                          <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-[10px] uppercase font-bold tracking-wider text-zinc-400">
+                            <th className="px-6 py-3">Invoice Number</th>
+                            <th className="px-6 py-3">Issued Date</th>
+                            <th className="px-6 py-3">Amount</th>
+                            <th className="px-6 py-3 text-right">Download</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 text-zinc-700 dark:text-zinc-350">
+                          {invoices.map((inv) => (
+                            <tr key={inv._id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-850/20">
+                              <td className="px-6 py-3.5 font-bold text-zinc-900 dark:text-white">
+                                {inv.number}
+                              </td>
+                              <td className="px-6 py-3.5 font-medium">
+                                {new Date(inv.issuedAt || inv.createdAt).toLocaleDateString()}
+                              </td>
+                              <td className="px-6 py-3.5 font-bold text-zinc-900 dark:text-white">
+                                INR {inv.amountInr}
+                              </td>
+                              <td className="px-6 py-3.5 text-right">
+                                <a
+                                  href={`${API_URL}${inv.downloadUrl}?token=${localStorage.getItem("accessToken")}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 px-3 py-1 border border-zinc-200 dark:border-zinc-800 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-850 font-semibold text-[10px] text-zinc-650 dark:text-zinc-300 no-underline"
+                                >
+                                  <Download className="w-3.5 h-3.5" />
+                                  <span>PDF</span>
+                                </a>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
         </AnimatePresence>
       </main>
 
@@ -1247,193 +1749,54 @@ export default function App() {
 // AUTH CARD SUBCOMPONENT
 // ====================================================
 function AuthCard({ setActiveView, fetchUserProfile, showToast }) {
-  const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  
-  const [form, setForm] = useState({
-    name: "",
-    email: "demo@example.com",
-    password: "demo-password"
-  });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMsg("");
-    setLoading(true);
-
-    try {
-      const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
-      const payload = isLogin
-        ? { email: form.email, password: form.password }
-        : { name: form.name, email: form.email, password: form.password };
-
-      const response = await apiRequest(endpoint, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
-
-      localStorage.setItem("accessToken", response.accessToken);
-      await fetchUserProfile();
-      
-      showToast(
-        isLogin ? "Logged in successfully" : "Account registered successfully",
-        "success"
-      );
-      
-      setActiveView("dashboard");
-    } catch (err) {
-      console.error(err);
-      setErrorMsg(err.message || "Authentication failed. Try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
-    <div className="w-full max-w-md bg-white/80 dark:bg-zinc-900/40 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-8 shadow-xl dark:shadow-2xl space-y-7 relative overflow-hidden">
+    <div className="w-full max-w-md bg-white/80 dark:bg-zinc-900/40 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-8 shadow-xl dark:shadow-2xl space-y-7 relative overflow-hidden text-center">
       {/* Decorative Orbs Inside Card */}
       <div className="absolute -top-10 -right-10 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
       <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-pink-500/10 rounded-full blur-xl pointer-events-none"></div>
 
       {/* Head */}
-      <div className="text-center space-y-1.5 relative z-10">
+      <div className="space-y-2.5 relative z-10">
         <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
-          {isLogin ? "Welcome back" : "Create an account"}
+          Sign In to Assessment Maker
         </h2>
-        <p className="text-xs text-zinc-400 dark:text-zinc-500 font-medium">
-          {isLogin ? "Sign in to access the generation console" : "Register to generate reflective DOCX files"}
+        <p className="text-xs text-zinc-550 dark:text-zinc-400 font-medium max-w-xs mx-auto leading-relaxed">
+          Use your Google account to login or register. First-time users instantly get a 1-time free trial of every document generation type.
         </p>
       </div>
 
-      {/* Tabs Switcher */}
-      <div className="grid grid-cols-2 p-1 bg-zinc-100/80 dark:bg-zinc-950/80 rounded-xl border border-zinc-200/40 dark:border-zinc-900/40 text-xs font-semibold relative z-10">
-        <button
-          onClick={() => {
-            setIsLogin(true);
-            setErrorMsg("");
-          }}
-          className={`py-2.5 rounded-lg transition-all duration-300 ${
-            isLogin
-              ? "bg-white dark:bg-zinc-800 shadow-sm text-zinc-955 dark:text-white font-bold"
-              : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-200"
-          }`}
-        >
-          Sign In
-        </button>
-        <button
-          onClick={() => {
-            setIsLogin(false);
-            setErrorMsg("");
-          }}
-          className={`py-2.5 rounded-lg transition-all duration-300 ${
-            !isLogin
-              ? "bg-white dark:bg-zinc-800 shadow-sm text-zinc-955 dark:text-white font-bold"
-              : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-200"
-          }`}
-        >
-          Register
-        </button>
-      </div>
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
-        {!isLogin && (
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Name</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500">
-                <User className="w-4 h-4" />
-              </span>
-              <input
-                type="text"
-                required
-                placeholder="Vignesh Kumar"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full pl-10 pr-4 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500/80 dark:focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 text-zinc-900 dark:text-zinc-100"
-              />
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-1.5">
-          <label className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Email address</label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500">
-              <Mail className="w-4 h-4" />
-            </span>
-            <input
-              type="email"
-              required
-              placeholder="name@example.com"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full pl-10 pr-4 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500/80 dark:focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 text-zinc-900 dark:text-zinc-100"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Password</label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500">
-              <Key className="w-4 h-4" />
-            </span>
-            <input
-              type="password"
-              required
-              placeholder="Minimum 8 characters"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full pl-10 pr-4 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500/80 dark:focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 text-zinc-900 dark:text-zinc-100"
-            />
-          </div>
-        </div>
-
-        {errorMsg && (
-          <div className="p-3.5 bg-rose-50 dark:bg-rose-950/30 border border-rose-200/50 dark:border-rose-900/40 rounded-xl flex items-start gap-2.5 text-xs text-rose-800 dark:text-rose-350">
-            <AlertCircle className="w-4.5 h-4.5 flex-shrink-0 mt-0.5" />
-            <span className="leading-relaxed font-medium">{errorMsg}</span>
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 font-semibold rounded-xl text-sm transition-all flex items-center justify-center gap-1.5"
-        >
-          {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <span>{isLogin ? "Continue" : "Sign Up"}</span>
-          )}
-        </button>
-      </form>
-
-      {/* Divider */}
-      <div className="relative flex items-center justify-center my-2 relative z-10">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-zinc-200/50 dark:border-zinc-800/80"></div>
-        </div>
-        <span className="relative px-3.5 bg-white dark:bg-zinc-950 text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-wider">
-          Or continue with
-        </span>
-      </div>
-
-      {/* OAuth Rows */}
-      <div className="grid grid-cols-2 gap-3 text-xs font-bold relative z-10">
+      {/* Sign In Button */}
+      <div className="pt-2 relative z-10">
         <a
           href={`${API_URL}/api/auth/google`}
-          className="flex items-center justify-center gap-2 py-2.5 border border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-zinc-900/30 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/50 rounded-xl text-zinc-700 dark:text-zinc-300 hover:border-indigo-500/30 transition-all duration-300 text-center no-underline shadow-sm hover:shadow"
+          onClick={() => setLoading(true)}
+          className="flex items-center justify-center gap-3 w-full py-3 px-4 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl text-zinc-700 dark:text-zinc-300 font-semibold shadow-sm hover:shadow-md transition-all duration-300 no-underline"
         >
-          Google
-        </a>
-        <a
-          href={`${API_URL}/api/auth/github`}
-          className="flex items-center justify-center gap-2 py-2.5 border border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-zinc-900/30 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/50 rounded-xl text-zinc-700 dark:text-zinc-300 hover:border-indigo-500/30 transition-all duration-300 text-center no-underline shadow-sm hover:shadow"
-        >
-          GitHub
+          {loading ? (
+            <Loader2 className="w-5 h-5 animate-spin text-zinc-550" />
+          ) : (
+            <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
+              <path
+                fill="#4285F4"
+                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.69c-.29 1.5-.14 2.69-2.4 3.7l3.7 2.88c2.16-2 3.75-4.94 3.75-8.43z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 24c3.24 0 5.97-1.08 7.96-2.91l-3.7-2.88c-1.03.69-2.35 1.1-4.26 1.1-3.28 0-6.06-2.22-7.05-5.21L1.24 17.02C3.21 21.09 7.39 24 12 24z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M4.95 14.1c-.25-.76-.4-1.57-.4-2.4s.15-1.64.4-2.4L1.24 6.42C.45 8.1 0 9.97 0 12s.45 3.9 1.24 5.58l3.71-2.48z"
+              />
+              <path
+                fill="#EA4335"
+                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.43-3.43C17.96 1.19 15.24 0 12 0 7.39 0 3.21 2.91 1.24 6.98l3.71 2.48c.99-2.99 3.77-5.21 7.05-5.21z"
+              />
+            </svg>
+          )}
+          <span className="text-sm">Continue with Google</span>
         </a>
       </div>
     </div>

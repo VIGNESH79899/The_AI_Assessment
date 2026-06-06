@@ -1,35 +1,27 @@
 export const defaultPlans = [
   {
-    key: "monthly",
-    name: "1 Month Membership",
-    interval: "monthly",
-    durationMonths: 1,
-    priceInr: 799,
-    features: ["Premium AI generator", "20 documents/month", "Invoice downloads", "Email support"]
-  },
-  {
     key: "quarterly",
-    name: "3 Month Membership",
+    name: "3-Month Premium Plan",
     interval: "quarterly",
     durationMonths: 3,
-    priceInr: 1999,
-    features: ["Everything in Monthly", "70 documents/quarter", "Referral rewards", "Priority generation"]
+    priceInr: 399,
+    features: ["Unlimited document generation", "Premium AI generator", "Invoice downloads", "Referral rewards", "Priority generation"]
   },
   {
     key: "half-yearly",
-    name: "6 Month Membership",
+    name: "6-Month Value Plan",
     interval: "half-yearly",
     durationMonths: 6,
-    priceInr: 3499,
+    priceInr: 799,
     popular: true,
-    features: ["Everything in Quarterly", "180 documents/period", "Advanced analytics", "Priority support"]
+    features: ["Unlimited document generation", "Premium AI generator", "Advanced analytics", "Priority support", "Invoice downloads"]
   },
   {
     key: "yearly",
-    name: "1 Year Membership",
+    name: "1-Year Ultimate Plan",
     interval: "yearly",
     durationMonths: 12,
-    priceInr: 5999,
-    features: ["Everything in Half-Yearly", "Unlimited standard documents", "Admin exports", "Concierge onboarding"]
+    priceInr: 1399,
+    features: ["Unlimited document generation", "Premium AI generator", "Admin exports", "Concierge onboarding", "Priority support"]
   }
 ];

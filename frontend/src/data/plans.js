@@ -1,44 +1,31 @@
 export const plans = [
   {
-    key: "monthly",
-    label: "Monthly",
-    name: "1 Month Membership",
-    price: 799,
-    cadence: "1 month",
-    badge: "Launch pass",
-    documents: "20 documents",
-    features: ["Premium generator", "Invoice downloads", "Locked content access", "Email support"]
-  },
-  {
     key: "quarterly",
     label: "Quarterly",
-    name: "3 Month Membership",
-    price: 1999,
+    name: "3-Month Premium Plan",
+    price: 399,
     cadence: "3 months",
-    badge: "Growth mode",
-    documents: "70 documents",
-    features: ["Priority generation", "Referral rewards", "Coupon support", "Renewal alerts"]
+    documents: "Unlimited",
+    features: ["Unlimited document generation", "Premium AI generator", "Invoice downloads", "Referral rewards", "Priority generation"]
   },
   {
     key: "half-yearly",
     label: "Half-Yearly",
-    name: "6 Month Membership",
-    price: 3499,
+    name: "6-Month Value Plan",
+    price: 799,
     cadence: "6 months",
-    badge: "Most Popular",
     popular: true,
-    documents: "180 documents",
-    features: ["Advanced analytics", "Premium badge", "Fast support", "Best conversion value"]
+    documents: "Unlimited",
+    features: ["Unlimited document generation", "Premium AI generator", "Advanced analytics", "Priority support", "Invoice downloads"]
   },
   {
     key: "yearly",
     label: "Yearly",
-    name: "1 Year Membership",
-    price: 5999,
-    cadence: "12 months",
-    badge: "Founder tier",
-    documents: "Unlimited standard",
-    features: ["Concierge onboarding", "Admin exports", "Unlimited standard docs", "Highest savings"]
+    name: "1-Year Ultimate Plan",
+    price: 1399,
+    cadence: "year",
+    documents: "Unlimited",
+    features: ["Unlimited document generation", "Premium AI generator", "Admin exports", "Concierge onboarding", "Priority support"]
   }
 ];
 

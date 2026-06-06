@@ -347,7 +347,6 @@ generatorRouter.post(
 generatorRouter.get(
   "/generator/download/:id",
   requireAuth,
-  requireActiveMembership,
   asyncHandler(async (req, res) => {
     const doc = await GeneratedDocument.findOne({ _id: req.params.id, user: req.user._id });
     if (!doc) throw new ApiError(404, "Generated document not found");
