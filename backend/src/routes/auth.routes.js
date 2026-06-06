@@ -241,7 +241,11 @@ authRouter.get("/google", (req, res, next) => {
     } catch (e) {}
   }
 
-  const dynamicCallbackURL = `${req.protocol}://${req.get("host")}/api/auth/google/callback`;
+  const host = req.get("host") || "";
+  const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
+  const protocol = isLocal ? req.protocol : "https";
+  const dynamicCallbackURL = `${protocol}://${host}/api/auth/google/callback`;
+
   passport.authenticate("google", { 
     scope: ["profile", "email"], 
     session: false,
@@ -258,7 +262,11 @@ authRouter.get(
       return res.redirect(`${redirectUrl}/login?oauth=google-unconfigured`);
     }
 
-    const dynamicCallbackURL = `${req.protocol}://${req.get("host")}/api/auth/google/callback`;
+    const host = req.get("host") || "";
+    const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
+    const protocol = isLocal ? req.protocol : "https";
+    const dynamicCallbackURL = `${protocol}://${host}/api/auth/google/callback`;
+
     passport.authenticate("google", { session: false, callbackURL: dynamicCallbackURL }, async (err, user) => {
       const redirectUrl = getRedirectUrl(req);
       res.clearCookie("oauthClientOrigin", {
