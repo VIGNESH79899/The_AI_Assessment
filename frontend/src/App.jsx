@@ -708,8 +708,12 @@ export default function App() {
               animate="show"
               exit="hidden"
               variants={fadeUp}
-              className="space-y-24"
+              className="space-y-28 relative pb-24"
             >
+              {/* Premium Background */}
+              <div className="absolute inset-0 -z-20 h-full w-full bg-transparent bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
+              <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[400px] w-[400px] rounded-full bg-blue-500/20 dark:bg-blue-600/20 blur-[120px] pointer-events-none"></div>
+
               {/* Hero Section */}
               <section className="py-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 {/* Left side: Text */}
@@ -941,35 +945,70 @@ export default function App() {
                 </div>
               </section>
 
-              {/* Feature Highlights */}
-              <section className="space-y-10 bg-zinc-50/50 dark:bg-zinc-900/20 p-8 rounded-3xl border border-zinc-200/50 dark:border-zinc-800/50">
+              {/* Feature Highlights - Bento Grid */}
+              <section className="space-y-10">
                 <div className="text-center space-y-3">
-                  <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Built for students, not enterprises</h2>
-                  <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-lg mx-auto">Everything you need to submit quality academic work — nothing you don&apos;t.</p>
+                  <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Built for students, not enterprises</h2>
+                  <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-xl mx-auto">Everything you need to submit top-tier academic work, packed into an intuitive, lightning-fast platform.</p>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                  {[
-                    { icon: <GraduationCap className="w-5 h-5" />, title: "University Format", desc: "Outputs match your college's cover page, heading style, font, and spacing requirements exactly." },
-                    { icon: <FileText className="w-5 h-5" />, title: "Instant DOCX Export", desc: "Every document is saved as an MS Word file — open it, print it, or email it right away." },
-                    { icon: <BookOpen className="w-5 h-5" />, title: "Real Research Papers", desc: "Literature surveys pull live articles from Semantic Scholar and arXiv — no fake citations." },
-                    { icon: <Sparkles className="w-5 h-5" />, title: "AI-Powered Writing", desc: "Groq Llama AI generates your content in under 30 seconds — structured and coherent." },
-                    { icon: <Layers className="w-5 h-5" />, title: "Document History", desc: "All your past documents are saved. Revisit, re-download, or regenerate any time." },
-                    { icon: <Calendar className="w-5 h-5" />, title: "Accurate Metadata", desc: "Student name, roll number, guide details, and year — pre-filled and embedded automatically." }
-                  ].map((feat, i) => (
-                    <motion.div 
-                      whileHover={{ scale: 1.02 }}
-                      key={i} 
-                      className="p-5 rounded-2xl bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800 flex gap-4 items-start hover:border-zinc-300 dark:hover:border-zinc-600 hover:shadow-md transition-all"
-                    >
-                      <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-600 dark:text-blue-400 flex-shrink-0">
-                        {feat.icon}
+                
+                <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 h-auto md:h-[400px]">
+                  {/* Large Card 1 */}
+                  <motion.div 
+                    whileHover={{ scale: 1.01 }}
+                    className="md:col-span-2 md:row-span-2 p-8 rounded-3xl bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/10 dark:to-zinc-900 shadow-sm border border-zinc-200/60 dark:border-zinc-800/60 flex flex-col justify-between hover:shadow-lg transition-all relative overflow-hidden group"
+                  >
+                    <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl group-hover:bg-blue-400/30 transition-all"></div>
+                    <div className="space-y-2 relative z-10">
+                      <div className="w-12 h-12 bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-700 flex items-center justify-center text-blue-600 mb-6">
+                        <GraduationCap className="w-6 h-6" />
                       </div>
-                      <div className="space-y-1.5">
-                        <h3 className="text-sm font-bold tracking-tight text-zinc-900 dark:text-white">{feat.title}</h3>
-                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">{feat.desc}</p>
-                      </div>
-                    </motion.div>
-                  ))}
+                      <h3 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">Strict University Formatting</h3>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-sm">Outputs match Aurora's PG College cover page, heading hierarchy, font size, and spacing requirements perfectly. No manual tweaking needed.</p>
+                    </div>
+                  </motion.div>
+
+                  {/* Top Right Card */}
+                  <motion.div 
+                    whileHover={{ scale: 1.02 }}
+                    className="md:col-span-2 p-6 rounded-3xl bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200/60 dark:border-zinc-800/60 hover:shadow-md transition-all flex gap-4 items-center group"
+                  >
+                    <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl text-emerald-600 flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <BookOpen className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold tracking-tight text-zinc-900 dark:text-white">Real Academic Papers</h3>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed mt-1">Surveys pull live, verifiable articles from Semantic Scholar. Zero AI hallucinations in your citations.</p>
+                    </div>
+                  </motion.div>
+
+                  {/* Bottom Right Card 1 */}
+                  <motion.div 
+                    whileHover={{ scale: 1.02 }}
+                    className="p-6 rounded-3xl bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200/60 dark:border-zinc-800/60 hover:shadow-md transition-all flex flex-col justify-between group"
+                  >
+                    <div className="p-2.5 bg-violet-50 dark:bg-violet-900/20 rounded-xl text-violet-600 w-max mb-3 group-hover:scale-110 transition-transform">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold tracking-tight text-zinc-900 dark:text-white">Instant Gen</h3>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">Groq AI builds docs in 30s flat.</p>
+                    </div>
+                  </motion.div>
+
+                  {/* Bottom Right Card 2 */}
+                  <motion.div 
+                    whileHover={{ scale: 1.02 }}
+                    className="p-6 rounded-3xl bg-zinc-900 dark:bg-zinc-100 shadow-sm border border-zinc-800 dark:border-zinc-200 hover:shadow-md transition-all flex flex-col justify-between group"
+                  >
+                    <div className="p-2.5 bg-zinc-800 dark:bg-zinc-200 rounded-xl text-white dark:text-zinc-900 w-max mb-3 group-hover:scale-110 transition-transform">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold tracking-tight text-white dark:text-zinc-900">Direct DOCX</h3>
+                      <p className="text-[11px] text-zinc-400 dark:text-zinc-600 mt-1">One-click native MS Word export.</p>
+                    </div>
+                  </motion.div>
                 </div>
               </section>
 
