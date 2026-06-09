@@ -841,132 +841,159 @@ export default function App() {
               </section>
 
               {/* What Can You Generate — 3 Cards */}
-              <section className="space-y-8">
-                <div className="text-center space-y-2">
-                  <h2 className="text-2xl md:text-3xl font-bold tracking-tight">What can you generate?</h2>
-                  <p className="text-zinc-500 dark:text-zinc-400 text-sm">Three types of academic documents — all formatted, ready to submit.</p>
+              <section className="space-y-10">
+                <div className="text-center space-y-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                    <Layers className="w-3 h-3" /> Capabilities
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold tracking-tight">What can you generate?</h2>
+                  <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-lg mx-auto">Three types of academic documents — all formatted, cited, and ready to submit.</p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {[
                     {
                       icon: <BookOpen className="w-6 h-6" />,
-                      iconBg: "bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400",
+                      iconBg: "bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors",
                       title: "Reflective Journal",
-                      desc: "Write a structured academic reflection on any module or subject topic. Includes course details, student credentials, and a formatted DOCX ready for submission.",
+                      desc: "Write a structured academic reflection on any module or subject topic. Includes course details, student credentials, and a formatted DOCX.",
                       tag: "Most Used"
                     },
                     {
                       icon: <Layers className="w-6 h-6" />,
-                      iconBg: "bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-400",
+                      iconBg: "bg-violet-100 dark:bg-violet-900/60 text-violet-600 dark:text-violet-400 group-hover:bg-violet-600 group-hover:text-white transition-colors",
                       title: "Free Writing Assessment",
-                      desc: "Generate an open-ended academic writing assessment on any domain topic. Powered by Groq AI and exported as a clean, printable Word document.",
+                      desc: "Generate an open-ended academic writing assessment on any domain topic. Exported as a clean, printable Word document.",
                       tag: "Creative"
                     },
                     {
                       icon: <GraduationCap className="w-6 h-6" />,
-                      iconBg: "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400",
+                      iconBg: "bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors",
                       title: "Literature Survey",
-                      desc: "Search real papers from Semantic Scholar & arXiv, select relevant articles, and synthesize a complete literature survey DOCX in the exact university format.",
+                      desc: "Search real papers from Semantic Scholar & arXiv, select relevant articles, and synthesize a complete literature survey DOCX with citations.",
                       tag: "Research"
                     }
                   ].map((card, i) => (
-                    <div
+                    <motion.div
+                      whileHover={{ y: -5 }}
                       key={i}
-                      className="p-5 rounded-2xl border bg-white dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800 hover:shadow-md transition-all space-y-4 flex flex-col"
+                      className="group relative p-6 rounded-2xl border bg-white dark:bg-zinc-900/60 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 hover:shadow-xl transition-all space-y-5 flex flex-col overflow-hidden"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className={`p-2.5 rounded-xl ${card.iconBg}`}>
+                      {/* Subtle hover background gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-transparent to-zinc-50 dark:to-zinc-800/20 opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
+                      
+                      <div className="flex items-center justify-between relative z-10">
+                        <div className={`p-3 rounded-xl shadow-sm ${card.iconBg}`}>
                           {card.icon}
                         </div>
                         <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
                           {card.tag}
                         </span>
                       </div>
-                      <div className="space-y-1.5 flex-1">
-                        <h3 className="text-sm font-bold tracking-tight text-zinc-900 dark:text-white">{card.title}</h3>
+                      <div className="space-y-2 flex-1 relative z-10">
+                        <h3 className="text-base font-bold tracking-tight text-zinc-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{card.title}</h3>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{card.desc}</p>
                       </div>
                       <button
                         onClick={() => setActiveView(user ? "dashboard" : "login")}
-                        className="w-full text-xs font-semibold py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 transition-all flex items-center justify-center gap-1.5"
+                        className="w-full text-xs font-semibold py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 group-hover:bg-zinc-900 group-hover:text-white dark:group-hover:bg-zinc-100 dark:group-hover:text-zinc-900 text-zinc-700 dark:text-zinc-300 transition-all flex items-center justify-center gap-1.5 relative z-10"
                       >
                         Try this <ChevronRight className="w-3.5 h-3.5" />
                       </button>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </section>
 
               {/* How It Works */}
-              <section className="space-y-10 py-4">
-                <div className="text-center space-y-2">
-                  <h2 className="text-2xl md:text-3xl font-bold tracking-tight">How it works</h2>
+              <section className="space-y-12 py-8 relative">
+                <div className="text-center space-y-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                    <RefreshCw className="w-3 h-3" /> Process
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold tracking-tight">How it works</h2>
                   <p className="text-zinc-500 dark:text-zinc-400 text-sm">From details to download in under a minute.</p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
+                  {/* Desktop connecting line */}
+                  <div className="hidden md:block absolute top-[1.8rem] left-[12%] right-[12%] h-[2px] bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-700 to-transparent -z-10"></div>
+                  
                   {[
-                    { step: "1", icon: <User className="w-5 h-5" />, title: "Enter your details", desc: "Add your name, roll number, academic year, course, and guide information." },
-                    { step: "2", icon: <BookOpen className="w-5 h-5" />, title: "Choose your topic", desc: "Search scholarly papers (for surveys) or type in your assignment topic directly." },
-                    { step: "3", icon: <Sparkles className="w-5 h-5" />, title: "Generate with AI", desc: "Our AI pipeline writes the full document — structured, formatted, and academic." },
-                    { step: "4", icon: <Download className="w-5 h-5" />, title: "Download the DOCX", desc: "Instantly download a university-ready Word document. No editing needed." }
+                    { step: "1", icon: <User className="w-5 h-5" />, title: "Enter Details", desc: "Add name, roll number, course, and guide." },
+                    { step: "2", icon: <BookOpen className="w-5 h-5" />, title: "Pick a Topic", desc: "Search scholarly papers or type a topic." },
+                    { step: "3", icon: <Sparkles className="w-5 h-5" />, title: "AI Generation", desc: "Our pipeline writes the full document." },
+                    { step: "4", icon: <Download className="w-5 h-5" />, title: "Download DOCX", desc: "Instantly download a formatted Word file." }
                   ].map((item, idx) => (
-                    <div key={idx} className="relative space-y-4 text-center">
-                      <div className="mx-auto w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-800 dark:text-zinc-100">
+                    <motion.div 
+                      whileHover={{ y: -5 }}
+                      key={idx} 
+                      className="group relative space-y-4 text-center"
+                    >
+                      <div className="mx-auto w-14 h-14 rounded-2xl bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 group-hover:border-blue-500/50 flex items-center justify-center text-zinc-600 dark:text-zinc-400 group-hover:text-blue-500 group-hover:shadow-lg group-hover:shadow-blue-500/20 transition-all">
                         {item.icon}
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Step {item.step}</p>
+                      <div className="space-y-1.5 px-2">
+                        <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Step {item.step}</p>
                         <h3 className="text-sm font-bold tracking-tight text-zinc-900 dark:text-white">{item.title}</h3>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{item.desc}</p>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </section>
 
               {/* Feature Highlights */}
-              <section className="space-y-8">
-                <div className="text-center space-y-2">
+              <section className="space-y-10 bg-zinc-50/50 dark:bg-zinc-900/20 p-8 rounded-3xl border border-zinc-200/50 dark:border-zinc-800/50">
+                <div className="text-center space-y-3">
                   <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Built for students, not enterprises</h2>
-                  <p className="text-zinc-500 dark:text-zinc-400 text-sm">Everything you need to submit quality academic work — nothing you don&apos;t.</p>
+                  <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-lg mx-auto">Everything you need to submit quality academic work — nothing you don&apos;t.</p>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                   {[
                     { icon: <GraduationCap className="w-5 h-5" />, title: "University Format", desc: "Outputs match your college's cover page, heading style, font, and spacing requirements exactly." },
                     { icon: <FileText className="w-5 h-5" />, title: "Instant DOCX Export", desc: "Every document is saved as an MS Word file — open it, print it, or email it right away." },
                     { icon: <BookOpen className="w-5 h-5" />, title: "Real Research Papers", desc: "Literature surveys pull live articles from Semantic Scholar and arXiv — no fake citations." },
                     { icon: <Sparkles className="w-5 h-5" />, title: "AI-Powered Writing", desc: "Groq Llama AI generates your content in under 30 seconds — structured and coherent." },
                     { icon: <Layers className="w-5 h-5" />, title: "Document History", desc: "All your past documents are saved. Revisit, re-download, or regenerate any time." },
-                    { icon: <Calendar className="w-5 h-5" />, title: "Always Accurate Metadata", desc: "Student name, roll number, guide details, and year — pre-filled and embedded automatically." }
+                    { icon: <Calendar className="w-5 h-5" />, title: "Accurate Metadata", desc: "Student name, roll number, guide details, and year — pre-filled and embedded automatically." }
                   ].map((feat, i) => (
-                    <div key={i} className="p-5 rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900/30 flex gap-4 items-start hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm">
-                      <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-700 dark:text-zinc-300 flex-shrink-0">
+                    <motion.div 
+                      whileHover={{ scale: 1.02 }}
+                      key={i} 
+                      className="p-5 rounded-2xl bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800 flex gap-4 items-start hover:border-zinc-300 dark:hover:border-zinc-600 hover:shadow-md transition-all"
+                    >
+                      <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-600 dark:text-blue-400 flex-shrink-0">
                         {feat.icon}
                       </div>
-                      <div className="space-y-1">
-                        <h3 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-white">{feat.title}</h3>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{feat.desc}</p>
+                      <div className="space-y-1.5">
+                        <h3 className="text-sm font-bold tracking-tight text-zinc-900 dark:text-white">{feat.title}</h3>
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">{feat.desc}</p>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </section>
 
               {/* Final CTA Banner */}
-              <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 p-10 text-center space-y-5">
-                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                  Ready to generate your document?
-                </h2>
-                <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-md mx-auto leading-relaxed">
-                  Sign in with your account and start generating academic documents in under a minute.
-                </p>
-                <button
-                  onClick={() => setActiveView(user ? "dashboard" : "login")}
-                  className="inline-flex items-center gap-2 px-8 py-3 bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 font-semibold rounded-xl shadow-md transition-all text-sm"
-                >
-                  <span>{user ? "Go to Studio" : "Get Started — It's Free"}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+              <section className="relative rounded-3xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl">
+                {/* Background glow */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-transparent to-emerald-50 dark:from-blue-900/20 dark:via-transparent dark:to-emerald-900/20 opacity-50 z-0"></div>
+                <div className="relative z-10 p-12 text-center space-y-6 flex flex-col items-center">
+                  <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+                    Ready to generate your document?
+                  </h2>
+                  <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-md mx-auto leading-relaxed">
+                    Sign in with your account and start generating academic documents in under a minute.
+                  </p>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setActiveView(user ? "dashboard" : "login")}
+                    className="inline-flex items-center gap-2 px-8 py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 font-bold rounded-full shadow-[0_0_20px_rgba(0,0,0,0.1)] dark:shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-xl transition-all text-sm mt-4"
+                  >
+                    <span>{user ? "Go to Studio" : "Get Started — It's Free"}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </motion.button>
+                </div>
               </section>
 
               {/* Footer */}
