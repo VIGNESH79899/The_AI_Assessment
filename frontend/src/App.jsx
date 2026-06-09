@@ -747,81 +747,96 @@ export default function App() {
                 </div>
 
                 {/* Right side: Interactive Visualizer */}
-                <div className="relative w-full aspect-[4/3] rounded-2xl bg-zinc-100/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 p-6 flex flex-col justify-center overflow-hidden shadow-2xl">
+                <div className="relative w-full aspect-[4/3] rounded-2xl bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800 p-5 flex flex-col overflow-hidden shadow-2xl">
                   {/* Decorative background glow */}
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[radial-gradient(circle,_rgba(59,130,246,0.15)_0%,_transparent_60%)] animate-pulse pointer-events-none"></div>
+                  <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-[200px] h-[200px] bg-blue-500/20 blur-[60px] rounded-full pointer-events-none"></div>
                   
-                  {/* Mock Input Field */}
-                  <motion.div 
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 mb-6 shadow-sm relative z-10 flex items-center gap-3 w-full max-w-sm mx-auto lg:mx-0"
-                  >
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></div>
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: "100%" }}
-                      transition={{ duration: 2, ease: "linear", repeat: Infinity, repeatType: "reverse", repeatDelay: 2 }}
-                      className="font-mono text-xs text-zinc-600 dark:text-zinc-400 overflow-hidden whitespace-nowrap border-r-2 border-zinc-400 dark:border-zinc-500 flex-1"
-                    >
-                      Topic: "Impact of AI on Education"
-                    </motion.div>
-                  </motion.div>
-
-                  {/* Mock Document Generation */}
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.5 }}
-                    className="flex-1 w-full max-w-sm mx-auto lg:mx-0 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-5 shadow-lg relative z-10 flex flex-col gap-3 overflow-hidden"
-                  >
-                    <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-700 pb-3">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-blue-500" />
-                        <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Reflective_Journal.docx</span>
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-200 dark:border-zinc-800 relative z-10">
+                    <div className="flex items-center gap-3">
+                      <div className="flex -space-x-2">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-sm">
+                          <BrainCircuit className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-sm">
+                          <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        </div>
                       </div>
-                      <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
+                      <div>
+                        <h3 className="text-sm font-bold text-zinc-900 dark:text-white">AI Engine</h3>
+                        <p className="text-[10px] text-zinc-500 font-medium">Processing request...</p>
+                      </div>
                     </div>
-                    
-                    <div className="space-y-3 pt-2">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: "80%" }}
-                        transition={{ duration: 1, delay: 0.8, repeat: Infinity, repeatType: "reverse", repeatDelay: 1 }}
-                        className="h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full"
-                      />
-                      <motion.div 
+                    <div className="px-2.5 py-1 bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[10px] font-bold rounded-full flex items-center gap-1.5 shadow-sm">
+                      <Sparkles className="w-3 h-3 animate-pulse" />
+                      GENERATING
+                    </div>
+                  </div>
+
+                  {/* Active Prompt */}
+                  <div className="bg-white dark:bg-zinc-800/80 rounded-lg p-3 mb-4 border border-zinc-200 dark:border-zinc-700 shadow-sm relative z-10">
+                    <div className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                      <User className="w-3 h-3" /> User Prompt
+                    </div>
+                    <div className="font-mono text-xs text-zinc-800 dark:text-zinc-200 flex items-center">
+                      <ChevronRight className="w-3 h-3 text-emerald-500 mr-1 flex-shrink-0" />
+                      <motion.span
                         initial={{ width: 0 }}
                         animate={{ width: "100%" }}
-                        transition={{ duration: 1.2, delay: 1, repeat: Infinity, repeatType: "reverse", repeatDelay: 1 }}
-                        className="h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full"
-                      />
+                        transition={{ duration: 2.5, ease: "linear", repeat: Infinity, repeatType: "reverse", repeatDelay: 5 }}
+                        className="overflow-hidden whitespace-nowrap inline-block align-bottom"
+                      >
+                        Write a Literature Survey on AI in Education.
+                      </motion.span>
+                    </div>
+                  </div>
+
+                  {/* Document Preview Area */}
+                  <div className="flex-1 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-700 p-4 shadow-inner relative overflow-hidden flex flex-col z-10">
+                    <div className="flex items-center gap-2 mb-4 border-b border-zinc-100 dark:border-zinc-800 pb-2">
+                      <div className="w-2.5 h-2.5 rounded-full bg-rose-500"></div>
+                      <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                      <div className="ml-2 text-[10px] font-medium text-zinc-400 font-mono">Literature_Survey.docx</div>
+                    </div>
+                    
+                    {/* Animated Text Lines */}
+                    <div className="space-y-4 flex-1 mt-2">
+                      {/* Title */}
                       <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: "60%" }}
-                        transition={{ duration: 0.8, delay: 1.2, repeat: Infinity, repeatType: "reverse", repeatDelay: 1 }}
-                        className="h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full"
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 0.5, repeat: Infinity, repeatType: "reverse", repeatDelay: 6 }}
+                        className="h-3 bg-zinc-800 dark:bg-zinc-200 w-3/4 rounded-sm mx-auto"
                       />
+                      
+                      {/* Abstract / Intro */}
+                      <div className="space-y-2">
+                        <motion.div initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 0.4, delay: 1.5, repeat: Infinity, repeatType: "reverse", repeatDelay: 6.1 }} className="h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-sm" />
+                        <motion.div initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 0.4, delay: 1.9, repeat: Infinity, repeatType: "reverse", repeatDelay: 5.7 }} className="h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-sm" />
+                        <motion.div initial={{ width: 0 }} animate={{ width: "60%" }} transition={{ duration: 0.3, delay: 2.3, repeat: Infinity, repeatType: "reverse", repeatDelay: 5.4 }} className="h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-sm" />
+                      </div>
+                      
+                      {/* Citations / Formatted Block */}
                       <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: "90%" }}
-                        transition={{ duration: 1.5, delay: 1.5, repeat: Infinity, repeatType: "reverse", repeatDelay: 1 }}
-                        className="h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full"
-                      />
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 3, repeat: Infinity, repeatType: "reverse", repeatDelay: 4.5 }}
+                        className="bg-zinc-50 dark:bg-zinc-800/50 p-2.5 border-l-2 border-blue-500 rounded-r-md text-[8px] sm:text-[9px] font-mono text-zinc-600 dark:text-zinc-300 leading-relaxed shadow-sm"
+                      >
+                        <span className="font-bold text-blue-600 dark:text-blue-400">References:</span><br/>
+                        [1] Smith, J. (2023). "AI in Pedagogy". Journal of EdTech.<br/>
+                        [2] Doe, A. (2024). "Machine Learning for Assessment".
+                      </motion.div>
                     </div>
 
-                    <div className="mt-auto pt-4 flex justify-end">
-                      <motion.button 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 2, repeat: Infinity, repeatType: "reverse", repeatDelay: 1 }}
-                        className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-lg flex items-center gap-1.5 border border-blue-200 dark:border-blue-800"
-                      >
-                        <Download className="w-3.5 h-3.5" /> Download DOCX
-                      </motion.button>
-                    </div>
-                  </motion.div>
+                    {/* Completion Overlay */}
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 4.5, duration: 0.5, repeat: Infinity, repeatType: "reverse", repeatDelay: 3 }}
+                      className="absolute bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 text-xs font-bold cursor-pointer transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download DOCX
+                    </motion.div>
+                  </div>
                 </div>
               </section>
 
