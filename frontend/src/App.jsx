@@ -1914,52 +1914,69 @@ function AuthCard({ setActiveView, fetchUserProfile, showToast }) {
   const [loading, setLoading] = useState(false);
 
   return (
-    <div className="w-full max-w-md bg-white/80 dark:bg-zinc-900/40 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-8 shadow-xl dark:shadow-2xl space-y-7 relative overflow-hidden text-center">
-      {/* Decorative Orbs Inside Card */}
-      <div className="absolute -top-10 -right-10 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
-      <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-pink-500/10 rounded-full blur-xl pointer-events-none"></div>
+    <div className="w-full max-w-md relative group">
+      {/* Massive gradient glow behind the card */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+      
+      <div className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-3xl border border-zinc-200/50 dark:border-zinc-800/50 rounded-3xl p-10 shadow-2xl relative overflow-hidden text-center flex flex-col items-center">
+        {/* Inner decorative orbs */}
+        <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      {/* Head */}
-      <div className="space-y-2.5 relative z-10">
-        <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
-          Sign In to Assessment Maker
-        </h2>
-        <p className="text-xs text-zinc-550 dark:text-zinc-400 font-medium max-w-xs mx-auto leading-relaxed">
-          Use your Google account to login or register. First-time users instantly get a 1-time free trial of every document generation type.
-        </p>
-      </div>
+        {/* Top Floating Badge */}
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full text-[10px] font-bold uppercase tracking-widest text-zinc-600 dark:text-zinc-400 mb-6 shadow-sm relative z-10">
+          <Sparkles className="w-3 h-3 text-amber-500" /> Secure Access
+        </div>
 
-      {/* Sign In Button */}
-      <div className="pt-2 relative z-10">
-        <a
-          href={`${API_URL}/api/auth/google`}
-          onClick={() => setLoading(true)}
-          className="flex items-center justify-center gap-3 w-full py-3 px-4 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl text-zinc-700 dark:text-zinc-300 font-semibold shadow-sm hover:shadow-md transition-all duration-300 no-underline"
-        >
-          {loading ? (
-            <Loader2 className="w-5 h-5 animate-spin text-zinc-550" />
-          ) : (
-            <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.69c-.29 1.5-.14 2.69-2.4 3.7l3.7 2.88c2.16-2 3.75-4.94 3.75-8.43z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 24c3.24 0 5.97-1.08 7.96-2.91l-3.7-2.88c-1.03.69-2.35 1.1-4.26 1.1-3.28 0-6.06-2.22-7.05-5.21L1.24 17.02C3.21 21.09 7.39 24 12 24z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M4.95 14.1c-.25-.76-.4-1.57-.4-2.4s.15-1.64.4-2.4L1.24 6.42C.45 8.1 0 9.97 0 12s.45 3.9 1.24 5.58l3.71-2.48z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.43-3.43C17.96 1.19 15.24 0 12 0 7.39 0 3.21 2.91 1.24 6.98l3.71 2.48c.99-2.99 3.77-5.21 7.05-5.21z"
-              />
-            </svg>
-          )}
-          <span className="text-sm">Continue with Google</span>
-        </a>
+        {/* Head */}
+        <div className="space-y-3 relative z-10 w-full mb-8">
+          <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-br from-zinc-900 via-zinc-700 to-zinc-500 dark:from-white dark:via-zinc-200 dark:to-zinc-500 bg-clip-text text-transparent">
+            Welcome Back
+          </h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-sm mx-auto">
+            Sign in to access the AI Studio. First-time users instantly get a <strong className="text-zinc-800 dark:text-zinc-200 font-bold">free trial</strong> of all generation types.
+          </p>
+        </div>
+
+        {/* Sign In Button */}
+        <div className="w-full relative z-10">
+          <a
+            href={`${API_URL}/api/auth/google`}
+            onClick={() => setLoading(true)}
+            className="flex items-center justify-center gap-3 w-full py-4 px-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-2xl text-zinc-800 dark:text-zinc-200 font-bold shadow-[0_4px_14px_0_rgba(0,0,0,0.05)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.1)] hover:-translate-y-0.5 transition-all duration-300 no-underline"
+          >
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
+            ) : (
+              <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.69c-.29 1.5-.14 2.69-2.4 3.7l3.7 2.88c2.16-2 3.75-4.94 3.75-8.43z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 24c3.24 0 5.97-1.08 7.96-2.91l-3.7-2.88c-1.03.69-2.35 1.1-4.26 1.1-3.28 0-6.06-2.22-7.05-5.21L1.24 17.02C3.21 21.09 7.39 24 12 24z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M4.95 14.1c-.25-.76-.4-1.57-.4-2.4s.15-1.64.4-2.4L1.24 6.42C.45 8.1 0 9.97 0 12s.45 3.9 1.24 5.58l3.71-2.48z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.43-3.43C17.96 1.19 15.24 0 12 0 7.39 0 3.21 2.91 1.24 6.98l3.71 2.48c.99-2.99 3.77-5.21 7.05-5.21z"
+                />
+              </svg>
+            )}
+            <span className="text-[15px]">Continue with Google</span>
+          </a>
+        </div>
+
+        {/* Footer info inside card */}
+        <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800/80 w-full relative z-10">
+          <p className="text-[11px] text-zinc-400 dark:text-zinc-500">
+            By signing in, you agree to our Terms of Service and Privacy Policy.<br/> Secure OAuth login provided by Google.
+          </p>
+        </div>
       </div>
     </div>
   );
