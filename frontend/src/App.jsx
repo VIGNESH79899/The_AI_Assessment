@@ -845,63 +845,80 @@ export default function App() {
               </section>
 
               {/* What Can You Generate — 3 Cards */}
-              <section className="space-y-10">
-                <div className="text-center space-y-3">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                    <Layers className="w-3 h-3" /> Capabilities
+              <section className="space-y-12 relative z-10 py-4">
+                {/* Decorative background glow */}
+                <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-emerald-500/5 dark:bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none -z-10"></div>
+                
+                <div className="text-center space-y-4">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-blue-50/80 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">
+                    <Layers className="w-3.5 h-3.5" /> Capabilities
                   </div>
-                  <h2 className="text-3xl md:text-4xl font-bold tracking-tight">What can you generate?</h2>
-                  <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-lg mx-auto">Three types of academic documents — all formatted, cited, and ready to submit.</p>
+                  <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+                    What can you <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-violet-600 dark:from-blue-400 dark:to-violet-400">generate?</span>
+                  </h2>
+                  <p className="text-zinc-500 dark:text-zinc-400 text-sm md:text-base max-w-lg mx-auto leading-relaxed">
+                    Three types of academic documents — all formatted, cited, and ready to submit in seconds.
+                  </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
                   {[
                     {
                       icon: <BookOpen className="w-6 h-6" />,
-                      iconBg: "bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors",
+                      iconBg: "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white",
+                      glowBg: "bg-blue-400/20 dark:bg-blue-500/20",
                       title: "Reflective Journal",
                       desc: "Write a structured academic reflection on any module or subject topic. Includes course details, student credentials, and a formatted DOCX.",
-                      tag: "Most Used"
+                      tag: "Most Used",
+                      tagColor: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30"
                     },
                     {
                       icon: <Layers className="w-6 h-6" />,
-                      iconBg: "bg-violet-100 dark:bg-violet-900/60 text-violet-600 dark:text-violet-400 group-hover:bg-violet-600 group-hover:text-white transition-colors",
+                      iconBg: "bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 group-hover:bg-violet-600 group-hover:text-white",
+                      glowBg: "bg-violet-400/20 dark:bg-violet-500/20",
                       title: "Free Writing Assessment",
                       desc: "Generate an open-ended academic writing assessment on any domain topic. Exported as a clean, printable Word document.",
-                      tag: "Creative"
+                      tag: "Creative",
+                      tagColor: "text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 border-violet-100 dark:border-violet-800/30"
                     },
                     {
                       icon: <GraduationCap className="w-6 h-6" />,
-                      iconBg: "bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors",
+                      iconBg: "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white",
+                      glowBg: "bg-emerald-400/20 dark:bg-emerald-500/20",
                       title: "Literature Survey",
                       desc: "Search real papers from Semantic Scholar & arXiv, select relevant articles, and synthesize a complete literature survey DOCX with citations.",
-                      tag: "Research"
+                      tag: "Research",
+                      tagColor: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30"
                     }
                   ].map((card, i) => (
                     <motion.div
-                      whileHover={{ y: -5 }}
+                      whileHover={{ y: -8 }}
                       key={i}
-                      className="group relative p-6 rounded-2xl border bg-white dark:bg-zinc-900/60 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 hover:shadow-xl transition-all space-y-5 flex flex-col overflow-hidden"
+                      className="group relative p-8 rounded-[2rem] bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200/80 dark:border-zinc-800/80 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.02)] hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-300 flex flex-col overflow-hidden"
                     >
-                      {/* Subtle hover background gradient */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-transparent to-zinc-50 dark:to-zinc-800/20 opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
+                      {/* Subtle hover background glow inside card */}
+                      <div className={`absolute -right-20 -top-20 w-64 h-64 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none ${card.glowBg}`}></div>
                       
-                      <div className="flex items-center justify-between relative z-10">
-                        <div className={`p-3 rounded-xl shadow-sm ${card.iconBg}`}>
+                      <div className="flex items-center justify-between relative z-10 mb-8">
+                        <div className={`p-4 rounded-2xl shadow-inner transition-colors duration-300 group-hover:scale-110 group-hover:-rotate-3 transform ${card.iconBg}`}>
                           {card.icon}
                         </div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
+                        <span className={`text-[9px] font-extrabold uppercase tracking-widest px-3 py-1.5 rounded-full border shadow-sm ${card.tagColor}`}>
                           {card.tag}
                         </span>
                       </div>
-                      <div className="space-y-2 flex-1 relative z-10">
-                        <h3 className="text-base font-bold tracking-tight text-zinc-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{card.title}</h3>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{card.desc}</p>
+                      
+                      <div className="space-y-3 flex-1 relative z-10 mb-8">
+                        <h3 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white group-hover:text-zinc-700 dark:group-hover:text-zinc-200 transition-colors">{card.title}</h3>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">{card.desc}</p>
                       </div>
+                      
                       <button
                         onClick={() => setActiveView(user ? "dashboard" : "login")}
-                        className="w-full text-xs font-semibold py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 group-hover:bg-zinc-900 group-hover:text-white dark:group-hover:bg-zinc-100 dark:group-hover:text-zinc-900 text-zinc-700 dark:text-zinc-300 transition-all flex items-center justify-center gap-1.5 relative z-10"
+                        className="w-full text-sm font-bold py-3.5 rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-zinc-50/50 dark:bg-zinc-800/50 group-hover:bg-zinc-900 group-hover:text-white dark:group-hover:bg-zinc-100 dark:group-hover:text-zinc-900 text-zinc-700 dark:text-zinc-300 transition-all duration-300 flex items-center justify-center gap-2 relative z-10 shadow-sm"
                       >
-                        Try this <ChevronRight className="w-3.5 h-3.5" />
+                        Try this 
+                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </button>
                     </motion.div>
                   ))}
@@ -946,67 +963,79 @@ export default function App() {
               </section>
 
               {/* Feature Highlights - Bento Grid */}
-              <section className="space-y-10">
-                <div className="text-center space-y-3">
-                  <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Built for students, not enterprises</h2>
-                  <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-xl mx-auto">Everything you need to submit top-tier academic work, packed into an intuitive, lightning-fast platform.</p>
+              <section className="space-y-12 relative z-10">
+                {/* Decorative background glow for the whole section */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-blue-500/5 dark:bg-blue-500/10 blur-[120px] rounded-full pointer-events-none -z-10"></div>
+                
+                <div className="text-center space-y-4">
+                  <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+                    Built for students, <span className="text-zinc-400 dark:text-zinc-500">not enterprises</span>
+                  </h2>
+                  <p className="text-zinc-500 dark:text-zinc-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+                    Everything you need to submit top-tier academic work, packed into an intuitive, lightning-fast platform.
+                  </p>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 h-auto md:h-[400px]">
+                <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-6 h-auto md:h-[450px]">
                   {/* Large Card 1 */}
                   <motion.div 
-                    whileHover={{ scale: 1.01 }}
-                    className="md:col-span-2 md:row-span-2 p-8 rounded-3xl bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/10 dark:to-zinc-900 shadow-sm border border-zinc-200/60 dark:border-zinc-800/60 flex flex-col justify-between hover:shadow-lg transition-all relative overflow-hidden group"
+                    whileHover={{ y: -5 }}
+                    className="md:col-span-2 md:row-span-2 p-8 md:p-10 rounded-[2rem] bg-gradient-to-br from-blue-50/80 via-white to-white dark:from-blue-900/20 dark:via-zinc-900 dark:to-zinc-900 shadow-sm border border-zinc-200/80 dark:border-zinc-800/80 flex flex-col justify-between hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.02)] transition-all duration-300 relative overflow-hidden group"
                   >
-                    <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl group-hover:bg-blue-400/30 transition-all"></div>
-                    <div className="space-y-2 relative z-10">
-                      <div className="w-12 h-12 bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-700 flex items-center justify-center text-blue-600 mb-6">
-                        <GraduationCap className="w-6 h-6" />
+                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] dark:opacity-[0.05] pointer-events-none mix-blend-overlay"></div>
+                    <div className="absolute -right-20 -top-20 w-64 h-64 bg-blue-400/20 dark:bg-blue-500/20 rounded-full blur-[60px] group-hover:bg-blue-400/30 dark:group-hover:bg-blue-500/30 group-hover:scale-110 transition-all duration-500"></div>
+                    
+                    <div className="space-y-4 relative z-10">
+                      <div className="w-14 h-14 bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-700 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                        <GraduationCap className="w-7 h-7" />
                       </div>
-                      <h3 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">Strict University Formatting</h3>
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-sm">Outputs match Aurora's PG College cover page, heading hierarchy, font size, and spacing requirements perfectly. No manual tweaking needed.</p>
+                      <h3 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Strict University Formatting</h3>
+                      <p className="text-base text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-md">Outputs match Aurora's PG College cover page, heading hierarchy, font size, and spacing requirements perfectly. No manual tweaking needed.</p>
                     </div>
                   </motion.div>
 
                   {/* Top Right Card */}
                   <motion.div 
-                    whileHover={{ scale: 1.02 }}
-                    className="md:col-span-2 p-6 rounded-3xl bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200/60 dark:border-zinc-800/60 hover:shadow-md transition-all flex gap-4 items-center group"
+                    whileHover={{ y: -5 }}
+                    className="md:col-span-2 p-8 rounded-[2rem] bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200/80 dark:border-zinc-800/80 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.02)] transition-all duration-300 flex gap-6 items-center group relative overflow-hidden"
                   >
-                    <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl text-emerald-600 flex-shrink-0 group-hover:scale-110 transition-transform">
-                      <BookOpen className="w-6 h-6" />
+                    <div className="absolute -right-10 top-1/2 -translate-y-1/2 w-32 h-32 bg-emerald-400/10 dark:bg-emerald-500/10 rounded-full blur-[40px] group-hover:bg-emerald-400/20 dark:group-hover:bg-emerald-500/20 transition-all duration-500"></div>
+                    <div className="p-4 bg-emerald-50 dark:bg-emerald-900/30 rounded-2xl text-emerald-600 dark:text-emerald-400 flex-shrink-0 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300 relative z-10 shadow-inner">
+                      <BookOpen className="w-7 h-7" />
                     </div>
-                    <div>
-                      <h3 className="text-base font-bold tracking-tight text-zinc-900 dark:text-white">Real Academic Papers</h3>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed mt-1">Surveys pull live, verifiable articles from Semantic Scholar. Zero AI hallucinations in your citations.</p>
+                    <div className="relative z-10">
+                      <h3 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Real Academic Papers</h3>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed mt-2">Surveys pull live, verifiable articles from Semantic Scholar. Zero AI hallucinations in your citations.</p>
                     </div>
                   </motion.div>
 
                   {/* Bottom Right Card 1 */}
                   <motion.div 
-                    whileHover={{ scale: 1.02 }}
-                    className="p-6 rounded-3xl bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200/60 dark:border-zinc-800/60 hover:shadow-md transition-all flex flex-col justify-between group"
+                    whileHover={{ y: -5 }}
+                    className="p-8 rounded-[2rem] bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200/80 dark:border-zinc-800/80 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.02)] transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
                   >
-                    <div className="p-2.5 bg-violet-50 dark:bg-violet-900/20 rounded-xl text-violet-600 w-max mb-3 group-hover:scale-110 transition-transform">
-                      <Sparkles className="w-5 h-5" />
+                    <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-violet-400/10 dark:bg-violet-500/10 rounded-full blur-[40px] group-hover:bg-violet-400/20 dark:group-hover:bg-violet-500/20 transition-all duration-500"></div>
+                    <div className="p-3.5 bg-violet-50 dark:bg-violet-900/30 rounded-2xl text-violet-600 dark:text-violet-400 w-max mb-4 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300 relative z-10 shadow-inner">
+                      <Sparkles className="w-6 h-6" />
                     </div>
-                    <div>
-                      <h3 className="text-sm font-bold tracking-tight text-zinc-900 dark:text-white">Instant Gen</h3>
-                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">Groq AI builds docs in 30s flat.</p>
+                    <div className="relative z-10">
+                      <h3 className="text-base font-bold tracking-tight text-zinc-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">Instant Gen</h3>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed mt-1.5">Groq AI builds docs in 30s flat.</p>
                     </div>
                   </motion.div>
 
                   {/* Bottom Right Card 2 */}
                   <motion.div 
-                    whileHover={{ scale: 1.02 }}
-                    className="p-6 rounded-3xl bg-zinc-900 dark:bg-zinc-100 shadow-sm border border-zinc-800 dark:border-zinc-200 hover:shadow-md transition-all flex flex-col justify-between group"
+                    whileHover={{ y: -5 }}
+                    className="p-8 rounded-[2rem] bg-zinc-900 dark:bg-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-zinc-800 dark:border-zinc-200 hover:shadow-[0_12px_40px_rgb(0,0,0,0.12)] transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
                   >
-                    <div className="p-2.5 bg-zinc-800 dark:bg-zinc-200 rounded-xl text-white dark:text-zinc-900 w-max mb-3 group-hover:scale-110 transition-transform">
-                      <FileText className="w-5 h-5" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent dark:from-black/5 pointer-events-none"></div>
+                    <div className="p-3.5 bg-zinc-800 dark:bg-zinc-200 rounded-2xl text-white dark:text-zinc-900 w-max mb-4 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300 relative z-10 shadow-inner">
+                      <FileText className="w-6 h-6" />
                     </div>
-                    <div>
-                      <h3 className="text-sm font-bold tracking-tight text-white dark:text-zinc-900">Direct DOCX</h3>
-                      <p className="text-[11px] text-zinc-400 dark:text-zinc-600 mt-1">One-click native MS Word export.</p>
+                    <div className="relative z-10">
+                      <h3 className="text-base font-bold tracking-tight text-white dark:text-zinc-900">Direct DOCX</h3>
+                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1.5">One-click native MS Word export.</p>
                     </div>
                   </motion.div>
                 </div>
