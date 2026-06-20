@@ -242,6 +242,16 @@ generatorRouter.get(
   })
 );
 
+generatorRouter.get(
+  "/generator/debug",
+  asyncHandler(async (req, res) => {
+    res.json({
+      aiServiceUrl: env.aiServiceUrl,
+      nodeEnv: env.nodeEnv,
+      readyState: mongoose.connection.readyState
+    });
+  })
+);
 
 generatorRouter.post(
   "/generator/assignments",
