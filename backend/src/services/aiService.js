@@ -25,11 +25,13 @@ async function axiosRequestWithRetry(config, retries = 10, delayMs = 8000) {
         !error.response; // No response at all (network level failure)
 
       if (isRetryable && attempt < retries) {
+        // Use exponential backoff to give Render's free tier time to boot and clear rate limits
+        const backoffDelay = Math.min(delayMs * Math.pow(1.5, attempt - 1), 30000);
         console.warn(
           `[AI_SERVICE] API rate limited, gateway error, or hibernating (Status: ${status || error.code || "NetworkError"} - ${config.method} ${config.url}). ` +
-          `Retrying attempt ${attempt}/${retries} in ${delayMs}ms...`
+          `Retrying attempt ${attempt}/${retries} in ${Math.round(backoffDelay)}ms...`
         );
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        await new Promise((resolve) => setTimeout(resolve, Math.round(backoffDelay)));
         continue;
       }
       

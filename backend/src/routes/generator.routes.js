@@ -222,36 +222,40 @@ generatorRouter.post(
   })
 );
 
+let cachedStatus = null;
+let lastStatusCheck = 0;
+const CACHE_TTL = 15000; // Cache status for 15 seconds
+
 generatorRouter.get(
   "/generator/status",
   requireAuth,
   asyncHandler(async (req, res) => {
+    const now = Date.now();
+    if (cachedStatus !== null && (now - lastStatusCheck) < CACHE_TTL) {
+      return res.json({ ready: cachedStatus });
+    }
+
     const healthUrl = `${env.aiServiceUrl.replace(/\/+$/, '')}/health`;
     try {
       const response = await axios.get(healthUrl, {
         headers: { "x-internal-service-token": env.aiServiceToken || "" },
-        timeout: 2000 // 2 seconds timeout for fast status checks
+        timeout: 5000 // Increased timeout to 5 seconds
       });
       if (response.status === 200) {
+        cachedStatus = true;
+        lastStatusCheck = now;
         return res.json({ ready: true });
       }
     } catch (err) {
       console.log(`[STATUS] Service check failed, not ready: ${err.message}`);
     }
+    
+    cachedStatus = false;
+    lastStatusCheck = now;
     res.json({ ready: false });
   })
 );
 
-generatorRouter.get(
-  "/generator/debug",
-  asyncHandler(async (req, res) => {
-    res.json({
-      aiServiceUrl: env.aiServiceUrl,
-      nodeEnv: env.nodeEnv,
-      readyState: mongoose.connection.readyState
-    });
-  })
-);
 
 generatorRouter.post(
   "/generator/assignments",
